@@ -21,21 +21,51 @@ export default async function Records() {
   const cookieStore = cookies()
   const supabase = createServerClient(cookieStore)
 
-  // Check if user is authenticated
+  // Get authenticated user
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser()
 
-  // Redirect to login if no user or auth error
   if (authError || !user) {
     redirect('/login')
   }
 
+  // Get user's group using a direct profile query
+  const { data: userData, error: userError } = await supabase
+    .from('profiles') // Assuming you have a profiles table
+    .select('user_group')
+    .eq('id', user.id)
+    .single()
+
+  // If you don't have a profiles table, we can try getting it from user metadata
+  const userGroup = userData?.user_group || user?.user_metadata?.user_group
+  console.log('User:', user)
+  console.log('User group:', userGroup)
+  console.log('User error:', userError)
+
+  if (!userGroup) {
+    console.error('No user group found:', userError)
+    return <div>Error: Unable to determine user group</div>
+  }
+
+  // Query records with the user_group and join with agencies table
   const { data: records, error } = await supabase
     .from('records')
-    .select('*')
+    .select(
+      `
+      *,
+      agencies (
+        name
+      )
+    `,
+    )
+    .eq('user_group', userGroup)
     .order('date_created', { ascending: false })
+
+  console.log('Records query params:', { userGroup })
+  console.log('Records:', records)
+  console.log('Query error:', error)
 
   // Get unique values for filters
   const types = [
@@ -165,9 +195,7 @@ export default async function Records() {
                 >
                   <td className="px-4 py-2">{record.file_name}</td>
                   <td className="px-4 py-2">{record.type}</td>
-                  <td className="px-4 py-2">
-                    {record.agency?.name || record.agency_id}
-                  </td>
+                  <td className="px-4 py-2">{record.agencies?.name}</td>
                   <td className="px-4 py-2">{record.status}</td>
                   <td className="px-4 py-2">
                     {new Date(record.date_created).toLocaleDateString('en-US')}
