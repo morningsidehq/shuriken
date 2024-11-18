@@ -25,7 +25,8 @@
     "test": "jest",
     "test:ci": "jest --ci",
     "analyze": "ANALYZE=true npm run build",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "do-build": "npm clean-install && npm run build"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^14.0.4",
