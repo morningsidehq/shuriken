@@ -12,8 +12,14 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: 'Next.js and Supabase Starter Kit',
-  description: 'The fastest way to build apps with Next.js and Supabase',
+  title: 'Constance',
+  description: 'A Morningside HQ App',
+  icons: {
+    icon: '/ms_constance_icon.png',
+    // Optional: You can also specify different sizes or formats
+    // apple: '/apple-icon.png',
+    // shortcut: '/shortcut-icon.png',
+  },
 }
 
 export default function RootLayout({
@@ -27,6 +33,9 @@ export default function RootLayout({
       className={GeistSans.className}
       style={{ colorScheme: 'dark' }}
     >
+      <head>
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+      </head>
       <body className="bg-background text-foreground">
         <NextTopLoader showSpinner={false} height={2} color="#2acf80" />
         <ThemeProvider
