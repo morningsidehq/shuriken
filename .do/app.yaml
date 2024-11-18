@@ -1,0 +1,25 @@
+name: shuriken-app
+services:
+  - name: web
+    git:
+      branch: dev
+      repo_clone_url: https://github.com/yourusername/your-repo.git
+    build_command: npm run do-build
+    run_command: npm start
+    environment_slug: nodejs
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        value: ${NEXT_PUBLIC_SUPABASE_URL}
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        value: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - key: NEXT_PUBLIC_TYPESENSE_API_KEY
+        value: ${NEXT_PUBLIC_TYPESENSE_API_KEY}
+    http_port: 3000
+    health_check:
+      http_path: /
+    routes:
+      - path: / 

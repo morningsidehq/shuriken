@@ -24,8 +24,11 @@ export default async function DashboardPage() {
   return (
     <>
       <Header />
-      <div className="morningside-container py-8">
-        <div className="morningside-card">
+      <div
+        className="morningside-container py-8"
+        style={{ marginTop: '250px' }}
+      >
+        <div className="morningside-card duration-400 text-center animate-in fade-in">
           <h1 className="mb-4 text-2xl font-semibold">
             Welcome to the Constance Dashboard
           </h1>

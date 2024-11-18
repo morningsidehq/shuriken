@@ -12,7 +12,8 @@
   }
   
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
+    background-color: #FF0000; /* Red background for all pages */
   }
 }
 

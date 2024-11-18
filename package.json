@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
@@ -26,7 +26,7 @@
     "test:ci": "jest --ci",
     "analyze": "ANALYZE=true npm run build",
     "lint-staged": "lint-staged",
-    "do-build": "npm clean-install && npm run build"
+    "do-build": "npm ci && npm run build"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^14.0.4",

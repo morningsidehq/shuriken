@@ -92,7 +92,7 @@ export default async function Records() {
     return (
       <div className="flex w-full flex-1 flex-col items-center gap-8">
         <Header />
-        <div className="container py-8">
+        <div className="container py-8 text-center">
           <div className="morningside-card">
             <h2 className="mb-2 text-xl font-semibold">
               Error Loading Records
@@ -109,7 +109,7 @@ export default async function Records() {
       <Header />
 
       <div className="container py-8">
-        <h1 className="mb-8 text-4xl font-bold">Records</h1>
+        <h1 className="mb-8 text-center text-4xl font-bold">Records</h1>
 
         <div className="morningside-card mb-8">
           <h2 className="mb-4 text-xl font-semibold">Filters</h2>
