@@ -1,0 +1,11 @@
+name: plankton-app
+services:
+- name: web
+  github:
+    branch: dev
+    deploy_on_push: true
+  build_command: npm run do-build
+  run_command: npm start
+  environment_slug: nodejs
+  instance_count: 1
+  instance_size_slug: basic-xxs 
