@@ -38,6 +38,33 @@
   .morningside-select {
     @apply bg-white text-black border border-input rounded-lg px-3 py-2 w-full shadow-md transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
   }
+  
+  .dashboard-action-card svg {
+    @apply text-black;  /* Default black color */
+    transition: color 0.2s ease;
+  }
+
+  .dashboard-action-card {
+    @apply flex flex-col items-center justify-center p-6 bg-white rounded-lg border border-border;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .dashboard-action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15);
+  }
+
+  .dashboard-action-card:hover svg {
+    @apply text-[#B22234];  /* Constance red color on hover */
+  }
+
+  .company a {
+    transition: color 0.2s ease;
+  }
+
+  .company a:hover {
+    @apply text-[#B22234];
+  }
 }
   /* Tables */
   .morningside-table-container {

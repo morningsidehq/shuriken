@@ -16,7 +16,10 @@ export default async function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm transition-shadow duration-200 ease-in-out hover:shadow-md">
       <div className="container flex h-14 items-center">
         <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
+          <Link
+            href={session ? '/dashboard' : '/'}
+            className="flex items-center gap-2"
+          >
             <Image
               src="/ms_constance_icon.png"
               alt="Constance Logo"
