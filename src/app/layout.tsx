@@ -11,17 +11,20 @@ const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
   : 'http://localhost:3000'
 
-export const metadata = {
-  metadataBase: new URL(defaultUrl),
-  title: 'Constance',
-  description: 'A Morningside HQ App',
-  icons: {
-    icon: '/ms_constance_icon.png',
-    // Optional: You can also specify different sizes or formats
-    // apple: '/apple-icon.png',
-    // shortcut: '/shortcut-icon.png',
-  },
+export async function generateMetadata() {
+  return {
+    metadataBase: new URL(defaultUrl),
+    title: 'Constance',
+    description: 'A Morningside HQ App',
+    icons: {
+      icon: '/ms_constance_icon.png',
+    },
+  }
 }
+
+export const dynamic = 'force-dynamic'
+
+export const runtime = 'edge'
 
 export default function RootLayout({
   children,
@@ -35,7 +38,17 @@ export default function RootLayout({
       style={{ colorScheme: 'dark' }}
     >
       <head>
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        <link
+          rel="preload"
+          href="https://rsms.me/inter/inter.css"
+          as="style"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="stylesheet"
+          href="https://rsms.me/inter/inter.css"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="bg-background text-foreground">
         <NextTopLoader showSpinner={false} height={2} color="#2acf80" />
@@ -48,11 +61,12 @@ export default function RootLayout({
           <ReactQueryProvider>
             <main className="flex min-h-screen flex-col items-center">
               {children}
-              <Analytics />{' '}
-              {/* ^^ remove this if you are not deploying to vercel. See more at https://vercel.com/docs/analytics  */}
+              <Analytics />
               <Footer />
             </main>
-            <ReactQueryDevtools initialIsOpen={false} />
+            {process.env.NODE_ENV === 'development' && (
+              <ReactQueryDevtools initialIsOpen={false} />
+            )}
           </ReactQueryProvider>
         </ThemeProvider>
       </body>

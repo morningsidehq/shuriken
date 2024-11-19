@@ -1,19 +1,36 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { createBrowserClient } from '@/utils/supabase'
 
 export default function FileUploader({
   userGroup,
   className,
+  onFileSelect,
+  showUploadButton = true,
 }: {
   userGroup: string
   className?: string
+  onFileSelect?: (file: File | null) => void
+  showUploadButton?: boolean
 }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createBrowserClient()
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession()
+      if (error || !session) {
+        console.error('Session check failed:', error)
+      }
+    }
+    checkSession()
+  }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -31,6 +48,7 @@ export default function FileUploader({
         return
       }
       setSelectedFile(file)
+      onFileSelect?.(file)
     }
   }
 
@@ -131,20 +149,22 @@ export default function FileUploader({
         </div>
       </div>
 
-      <div className="flex justify-center">
-        <button
-          type="button"
-          onClick={handleUpload}
-          disabled={!selectedFile || uploading}
-          className={`max-w-[300px] rounded px-4 py-2 ${
-            !selectedFile || uploading
-              ? 'cursor-not-allowed bg-gray-300 text-gray-500'
-              : 'bg-blue-900 text-white hover:bg-blue-700'
-          }`}
-        >
-          {uploading ? 'Uploading...' : 'Upload PDF'}
-        </button>
-      </div>
+      {showUploadButton && (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={!selectedFile || uploading}
+            className={`max-w-[300px] rounded px-4 py-2 ${
+              !selectedFile || uploading
+                ? 'cursor-not-allowed bg-gray-300 text-gray-500'
+                : 'bg-blue-900 text-white hover:bg-blue-700'
+            }`}
+          >
+            {uploading ? 'Uploading...' : 'Upload PDF'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }

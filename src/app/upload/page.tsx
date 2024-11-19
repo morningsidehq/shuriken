@@ -37,6 +37,11 @@ export default async function Upload() {
     return <div>Error: Unable to determine user group</div>
   }
 
+  // Add this function to format the user group name
+  const formatUserGroup = (group: string) => {
+    return group.replace(/([A-Z])/g, ' $1').trim()
+  }
+
   return (
     <div className="flex w-full flex-1 flex-col items-center gap-8">
       <Header />
@@ -46,8 +51,8 @@ export default async function Upload() {
           Quick Document Intake
         </h1>
 
-        <div className="mb-4 rounded bg-gray-100 p-2 text-center">
-          Current User Group: <strong>{userGroup}</strong>
+        <div className="mb-4 rounded bg-white p-2 text-left">
+          Uploading to: <strong>{formatUserGroup(userGroup)}</strong>
         </div>
 
         <div className="morningside-card">

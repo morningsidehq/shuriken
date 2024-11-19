@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { useState, useEffect, useRef } from 'react'
+import { createBrowserClient } from '@/utils/supabase'
 import FileUploader from '@/components/FileUploader'
 
 export default function AdvancedRecordForm({
@@ -18,8 +18,12 @@ export default function AdvancedRecordForm({
   const [agencies, setAgencies] = useState<Array<{ id: string; name: string }>>(
     [],
   )
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
 
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient()
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const fetchAgencies = async () => {
@@ -32,9 +36,122 @@ export default function AdvancedRecordForm({
     fetchAgencies()
   }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const initializeSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession()
+      if (error || !session) {
+        console.error('Session initialization failed:', error)
+      }
+    }
+    initializeSession()
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement form submission
+
+    if (!selectedFile) {
+      alert('Please select a file')
+      return
+    }
+
+    try {
+      setUploading(true)
+
+      // Get current session with detailed logging
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession()
+
+      console.log('Session check:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        sessionError: sessionError || 'none',
+      })
+
+      if (sessionError || !session?.user) {
+        throw new Error('Please log in to upload files')
+      }
+
+      // Create unique filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+      const originalName = selectedFile.name.replace('.pdf', '')
+      const fileNameWithTimestamp = `${fileName || originalName}_${timestamp}.pdf`
+      const filePath = `${userGroup}/${fileNameWithTimestamp}`
+
+      console.log('Upload attempt:', {
+        filePath,
+        userGroup,
+        userId: session.user.id,
+      })
+
+      // Upload file to storage
+      const { data: fileData, error: uploadError } = await supabase.storage
+        .from('user_objects')
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: 'application/pdf',
+        })
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        throw uploadError
+      }
+
+      console.log('Upload success:', fileData)
+
+      // Validate metadata JSON
+      let parsedMetadata = {}
+      if (metadata) {
+        try {
+          parsedMetadata = JSON.parse(metadata)
+        } catch (error) {
+          throw new Error('Invalid JSON in metadata field')
+        }
+      }
+
+      // Get the public URL for the uploaded file
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('user_objects').getPublicUrl(filePath)
+
+      // Create record in database
+      const { error: recordError } = await supabase.from('records').insert({
+        name: fileName || originalName,
+        type: recordType,
+        agency_id: agencyId,
+        description: description,
+        is_raster: isRaster,
+        metadata: parsedMetadata,
+        user_id: session.user.id,
+        user_group: userGroup,
+        status: 'complete',
+        object_upload_url: publicUrl,
+        date_created: new Date().toISOString(),
+      })
+
+      if (recordError) {
+        console.error('Record creation error:', recordError)
+        throw recordError
+      }
+
+      alert('Record created successfully!')
+      handleClear()
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    } catch (error: any) {
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      })
+      alert(`Error: ${error.message || 'Unknown error'}`)
+    } finally {
+      setUploading(false)
+    }
   }
 
   const handleClear = () => {
@@ -44,6 +161,14 @@ export default function AdvancedRecordForm({
     setDescription('')
     setIsRaster(false)
     setMetadata('')
+    setSelectedFile(null)
+  }
+
+  const handleFileSelect = (file: File | null) => {
+    setSelectedFile(file)
+    if (file && !fileName) {
+      setFileName(file.name)
+    }
   }
 
   return (
@@ -53,7 +178,12 @@ export default function AdvancedRecordForm({
           <label className="block text-sm font-medium">
             File Upload <span className="text-red-500">*</span>
           </label>
-          <FileUploader userGroup={userGroup} className="h-[150px]" />
+          <FileUploader
+            userGroup={userGroup}
+            className="h-[150px]"
+            onFileSelect={handleFileSelect}
+            showUploadButton={false}
+          />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -145,9 +275,14 @@ export default function AdvancedRecordForm({
       <div className="flex gap-4">
         <button
           type="submit"
-          className="rounded bg-primary px-4 py-2 text-white hover:bg-primary/90"
+          disabled={uploading}
+          className={`rounded px-4 py-2 text-white ${
+            uploading
+              ? 'cursor-not-allowed bg-gray-400'
+              : 'bg-primary hover:bg-primary/90'
+          }`}
         >
-          Create Record
+          {uploading ? 'Creating Record...' : 'Create Record'}
         </button>
         <button
           type="button"
