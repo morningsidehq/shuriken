@@ -14,11 +14,9 @@ const Footer: React.FC = () => {
             Created by Morningside Foundry
           </a>
         </span>
-        <span className={styles.version}>v0.2.3</span>
-        {/* 0.2.3: Added advanced record creation */}
-        {/* 0.2.3: Changed the landing page for Constance-specific. */}
-        {/* 0.2.3: Added links to the dashboard. Updated styling and layout. */}
-        {/* 0.2.3: Added Constance logo to the loading screen.*/}
+        <span className={styles.version}>v0.2.4</span>
+        {/* 0.2.3: Added advanced record creation, changed landing page for Constance-specific, added dashboard links with updated styling/layout, added Constance logo to loading screen */}
+        {/* 0.2.4: Added the Actions page and some functionality. */}
       </div>
     </footer>
   )

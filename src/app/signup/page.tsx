@@ -3,8 +3,8 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@/utils/supabase'
 
-export default async function Login() {
-  const handleSignIn = async (formData: FormData) => {
+export default async function Signup() {
+  const handleSignUp = async (formData: FormData) => {
     'use server'
 
     const cookieStore = cookies()
@@ -13,16 +13,19 @@ export default async function Login() {
     const email = String(formData.get('email'))
     const password = String(formData.get('password'))
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      },
     })
 
     if (error) {
-      return redirect('/login?message=Could not authenticate user')
+      return redirect('/signup?message=Could not create user')
     }
 
-    return redirect('/dashboard')
+    return redirect('/login?message=Check your email to confirm your account')
   }
 
   return (
@@ -50,7 +53,7 @@ export default async function Login() {
 
       <form
         className="flex w-full flex-1 flex-col justify-center gap-2 text-foreground animate-in"
-        action={handleSignIn}
+        action={handleSignUp}
       >
         <label className="text-md" htmlFor="email">
           Email
@@ -75,13 +78,13 @@ export default async function Login() {
           type="submit"
           className="mb-2 rounded-md bg-green-700 px-4 py-2 text-foreground"
         >
-          Sign In
+          Sign Up
         </button>
 
         <p className="text-center text-sm">
-          Don&apos;t have a Constance account yet?{' '}
-          <Link href="/signup" className="text-green-700 hover:underline">
-            Sign Up!
+          Already have an account?{' '}
+          <Link href="/login" className="text-green-700 hover:underline">
+            Sign in
           </Link>
         </p>
       </form>
