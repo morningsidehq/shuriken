@@ -34,6 +34,10 @@
   .morningside-button {
     @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
   }
+  
+  .morningside-select {
+    @apply bg-white text-black border border-input rounded-lg px-3 py-2 w-full shadow-md transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
 }
   /* Tables */
   .morningside-table-container {

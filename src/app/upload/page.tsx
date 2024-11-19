@@ -46,6 +46,10 @@ export default async function Upload() {
           Quick Document Intake
         </h1>
 
+        <div className="mb-4 rounded bg-gray-100 p-2 text-center">
+          Current User Group: <strong>{userGroup}</strong>
+        </div>
+
         <div className="morningside-card">
           <div className="mb-4">
             <h2 className="text-xl font-semibold">

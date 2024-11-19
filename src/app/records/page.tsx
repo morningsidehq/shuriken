@@ -2,20 +2,11 @@ import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
 import Header from '@/components/Header'
 import { redirect } from 'next/navigation'
-import dynamic from 'next/dynamic'
+import RecordsTable from '@/components/RecordsTable'
 
-// Add this near the top of the file, after the imports
 export const metadata = {
   title: 'Constance - Records',
 }
-
-// Dynamically import to avoid SSR issues with document
-const ViewRecordButton = dynamic(
-  () => import('@/components/ViewRecordButton'),
-  {
-    ssr: false,
-  },
-)
 
 export default async function Records() {
   const cookieStore = cookies()
@@ -33,7 +24,7 @@ export default async function Records() {
 
   // Get user's group using a direct profile query
   const { data: userData, error: userError } = await supabase
-    .from('profiles') // Assuming you have a profiles table
+    .from('profiles')
     .select('user_group')
     .eq('id', user.id)
     .single()
@@ -49,8 +40,25 @@ export default async function Records() {
     return <div>Error: Unable to determine user group</div>
   }
 
-  // Query records with the user_group and join with agencies table
-  const { data: records, error } = await supabase
+  // Fetch agency-specific records from user_objects bucket
+  const { data: agencyRecords, error: agencyError } = await supabase.storage
+    .from('user_objects')
+    .list(userGroup)
+
+  // Transform storage objects to match Record type
+  const formattedAgencyRecords =
+    agencyRecords?.map((record) => ({
+      file_name: record.name,
+      type: record.metadata?.type || 'Unknown',
+      status: 'complete',
+      date_created: record.created_at,
+      object_upload_url: supabase.storage
+        .from('user_objects')
+        .getPublicUrl(`${userGroup}/${record.name}`).data.publicUrl,
+    })) || []
+
+  // Query both complete and pending records
+  const { data: completeRecords, error: completeError } = await supabase
     .from('records')
     .select(
       `
@@ -60,12 +68,25 @@ export default async function Records() {
       )
     `,
     )
-    .eq('user_group', userGroup)
+    .eq('status', 'complete')
     .order('date_created', { ascending: false })
 
-  console.log('Records query params:', { userGroup })
-  console.log('Records:', records)
-  console.log('Query error:', error)
+  const { data: pendingRecords, error: pendingError } = await supabase
+    .from('records')
+    .select(
+      `
+      *,
+      agencies (
+        name
+      )
+    `,
+    )
+    .eq('status', 'pending')
+    .order('date_created', { ascending: false })
+
+  console.log('Complete Records:', completeRecords)
+  console.log('Pending Records:', pendingRecords)
+  console.log('Query errors:', completeError, pendingError)
 
   // Get unique values for filters
   const types = [
@@ -84,10 +105,14 @@ export default async function Records() {
     new Set<string>(agencyData?.map((a) => a.name) || []),
   )
   const allTags = Array.from(
-    new Set<string>(records?.flatMap((r) => r.tags || []) || []),
+    new Set<string>([
+      ...(completeRecords?.flatMap((r) => r.tags || []) || []),
+      ...(pendingRecords?.flatMap((r) => r.tags || []) || []),
+    ]),
   )
 
-  if (error) {
+  if (completeError || pendingError) {
+    const error = completeError || pendingError
     console.error('Error fetching records:', error)
     return (
       <div className="flex w-full flex-1 flex-col items-center gap-8">
@@ -97,7 +122,9 @@ export default async function Records() {
             <h2 className="mb-2 text-xl font-semibold">
               Error Loading Records
             </h2>
-            <p className="text-muted-foreground">{error.message}</p>
+            <p className="text-muted-foreground">
+              {error?.message || 'Unknown error occurred'}
+            </p>
           </div>
         </div>
       </div>
@@ -113,54 +140,35 @@ export default async function Records() {
 
         <div className="morningside-card mb-8">
           <h2 className="mb-4 text-xl font-semibold">Filters</h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <div>
               <label className="mb-2 block text-sm font-medium">Type</label>
-              <select className="morningside-input">
+              <select className="morningside-select w-full" disabled>
                 <option value="">All Types</option>
-                {types.map((type, i) => (
-                  <option key={i} value={type}>
+                {types.map((type) => (
+                  <option key={type} value={type}>
                     {type}
                   </option>
                 ))}
               </select>
             </div>
-
             <div>
               <label className="mb-2 block text-sm font-medium">Agency</label>
-              <select className="morningside-input">
+              <select className="morningside-select w-full" disabled>
                 <option value="">All Agencies</option>
-                {agencies.map((agency, i) => (
-                  <option key={i} value={agency}>
+                {agencies.map((agency) => (
+                  <option key={agency} value={agency}>
                     {agency}
                   </option>
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                Date Range
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  className="morningside-input"
-                  placeholder="From"
-                />
-                <input
-                  type="date"
-                  className="morningside-input"
-                  placeholder="To"
-                />
-              </div>
-            </div>
-
             <div>
               <label className="mb-2 block text-sm font-medium">Tags</label>
-              <select className="morningside-input" multiple>
-                {allTags.map((tag, i) => (
-                  <option key={i} value={tag}>
+              <select className="morningside-select w-full" disabled>
+                <option value="">All Tags</option>
+                {allTags.map((tag) => (
+                  <option key={tag} value={tag}>
                     {tag}
                   </option>
                 ))}
@@ -169,46 +177,14 @@ export default async function Records() {
           </div>
         </div>
 
-        <div className="w-full overflow-x-auto">
-          <table className="morningside-table">
-            <thead>
-              <tr className="border-b border-border/40">
-                <th className="max-w-[100px] whitespace-normal px-4 py-2 text-left font-medium">
-                  File Name
-                </th>
-                <th className="px-4 py-2 text-left font-medium">Type</th>
-                <th className="px-4 py-2 text-left font-medium">Agency</th>
-                <th className="px-4 py-2 text-left font-medium">Status</th>
-                <th className="px-4 py-2 text-left font-medium">
-                  Date Created
-                </th>
-                <th className="px-4 py-2 text-left font-medium">Tags</th>
-                <th className="px-4 py-2 text-left font-medium">Entities</th>
-                <th className="px-4 py-2 text-left font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {records?.map((record, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-border/40 hover:bg-muted/50"
-                >
-                  <td className="px-4 py-2">{record.file_name}</td>
-                  <td className="px-4 py-2">{record.type}</td>
-                  <td className="px-4 py-2">{record.agencies?.name}</td>
-                  <td className="px-4 py-2">{record.status}</td>
-                  <td className="px-4 py-2">
-                    {new Date(record.date_created).toLocaleDateString('en-US')}
-                  </td>
-                  <td className="px-4 py-2">{record.tags?.toString()}</td>
-                  <td className="px-4 py-2">{record.entities?.toString()}</td>
-                  <td className="px-4 py-2">
-                    <ViewRecordButton record={record} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="morningside-card">
+          <h2 className="mb-4 text-xl font-semibold">Records</h2>
+          <RecordsTable
+            completeRecords={[
+              ...formattedAgencyRecords,
+              ...(completeRecords || []),
+            ]}
+          />
         </div>
       </div>
     </div>
