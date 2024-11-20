@@ -4,13 +4,8 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable static optimization where possible
   output: 'standalone',
-  // Ensure static files are copied to the correct location
-  experimental: {
-    outputFileTracingRoot: process.cwd(),
-  },
-  // If you're using the public directory for images
-  outputFileTracing: true,
 
   // Configure HTTP cache headers
   async headers() {
@@ -50,12 +45,11 @@ const nextConfig = {
 
   // Optimize image handling
   images: {
-    domains: ['rsms.me', 'your-domain.com'], // Add your image domains here
+    domains: ['rsms.me'], // Add any other domains you're loading images from
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    unoptimized: true, // You might need this for static exports
   },
 }
 
-module.exports = nextConfig
+module.exports = withBundleAnalyzer(nextConfig)
