@@ -28,10 +28,23 @@ export default function SupabaseProvider({
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (newSession?.access_token !== session?.access_token) {
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
+
+      if (error) {
+        console.error('Error verifying user:', error)
+        setSession(null)
+        router.refresh()
+        return
+      }
+
+      if (user && newSession?.access_token !== session?.access_token) {
         setSession(newSession)
       }
+
       router.refresh()
     })
 

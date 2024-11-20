@@ -36,12 +36,38 @@ export default async function Header() {
               >
                 Home
               </Link>
-              <Link
-                href="/records"
-                className="text-sm font-medium hover:text-foreground/80"
-              >
-                Records
-              </Link>
+              <div className="group relative">
+                <button
+                  className="flex items-center gap-1 py-2 text-sm font-medium hover:text-foreground/80"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                >
+                  Records
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                <div
+                  className="invisible absolute left-0 top-full w-48 pt-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100"
+                  role="menu"
+                  aria-orientation="vertical"
+                >
+                  <div className="rounded-md bg-white py-2 shadow-lg">
+                    <Link
+                      href="/records"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      role="menuitem"
+                    >
+                      Public Records
+                    </Link>
+                    <Link
+                      href="/records/agencyrecords"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      role="menuitem"
+                    >
+                      Agency Records
+                    </Link>
+                  </div>
+                </div>
+              </div>
               <Link
                 href="/search"
                 className="text-sm font-medium hover:text-foreground/80"

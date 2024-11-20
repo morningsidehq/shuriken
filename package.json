@@ -26,7 +26,8 @@
     "test:ci": "jest --ci",
     "analyze": "ANALYZE=true npm run build",
     "lint-staged": "lint-staged",
-    "do-build": "npm ci && npm run build"
+    "do-build": "npm ci && npm run build",
+    "copy-public": "cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^14.0.4",
@@ -35,7 +36,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.5.2",
-    "@supabase/supabase-js": "^2.39.3",
+    "@supabase/supabase-js": "^2.46.1",
     "@tanstack/react-query": "^5.17.15",
     "@tanstack/react-query-devtools": "^5.17.15",
     "@vercel/analytics": "^1.1.1",

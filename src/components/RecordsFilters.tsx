@@ -26,6 +26,10 @@ export default function RecordsFilters({
     tag: '',
   })
 
+  const sortedAgencies = [...agencies].sort((a, b) =>
+    a.toLowerCase().localeCompare(b.toLowerCase()),
+  )
+
   const handleFilterChange = (field: keyof FilterState, value: string) => {
     setFilters((prev) => ({ ...prev, [field]: value }))
   }
@@ -57,7 +61,7 @@ export default function RecordsFilters({
             onChange={(e) => handleFilterChange('agency', e.target.value)}
           >
             <option value="">All Agencies</option>
-            {agencies.map((agency) => (
+            {sortedAgencies.map((agency) => (
               <option key={agency} value={agency}>
                 {agency}
               </option>

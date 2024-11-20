@@ -1,6 +1,6 @@
 'use client'
 
-import ViewRecordButton from './ViewRecordButton'
+import ViewPDFButton from './ViewPDFButton'
 
 type Record = {
   file_name: string
@@ -13,25 +13,31 @@ type Record = {
   object_upload_url: string
 }
 
-type RecordsTableProps = {
+type AgencyRecordsTableProps = {
   records: Record[]
   typeFilter: string
   agencyFilter: string
-  tagFilter: string
+  tagFilter: string | string[]
 }
 
-export default function RecordsTable({
+export default function AgencyRecordsTable({
   records,
   typeFilter,
   agencyFilter,
   tagFilter,
-}: RecordsTableProps) {
+}: AgencyRecordsTableProps) {
   const filteredRecords = records.filter((record) => {
     const matchesType = !typeFilter || record.type === typeFilter
     const matchesAgency =
       !agencyFilter || record.agencies?.name === agencyFilter
     const matchesTag =
-      !tagFilter || (record.tags && record.tags.includes(tagFilter))
+      !tagFilter ||
+      (record.tags &&
+        record.tags.length > 0 &&
+        (Array.isArray(tagFilter)
+          ? tagFilter.length === 0 ||
+            tagFilter.some((tag) => record.tags?.includes(tag))
+          : record.tags.includes(tagFilter)))
     return matchesType && matchesAgency && matchesTag
   })
 
@@ -63,7 +69,7 @@ export default function RecordsTable({
               <td className="px-4 py-2">{record.tags?.join(', ')}</td>
               <td className="px-4 py-2">{record.entities?.join(', ')}</td>
               <td className="px-4 py-2">
-                <ViewRecordButton record={record} />
+                <ViewPDFButton record={record} />
               </td>
             </tr>
           ))}

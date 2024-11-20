@@ -2,10 +2,10 @@ import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
 import Header from '@/components/Header'
 import { redirect } from 'next/navigation'
-import RecordsTable from '@/components/RecordsTable'
+import RecordsContent from '@/components/RecordsContent'
 
 export const metadata = {
-  title: 'Constance - Records',
+  title: 'Constance - Public Records',
 }
 
 export default async function Records() {
@@ -134,58 +134,15 @@ export default async function Records() {
   return (
     <div className="flex w-full flex-1 flex-col items-center gap-8">
       <Header />
-
       <div className="container py-8">
-        <h1 className="mb-8 text-center text-4xl font-bold">Records</h1>
-
-        <div className="morningside-card mb-8">
-          <h2 className="mb-4 text-xl font-semibold">Filters</h2>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium">Type</label>
-              <select className="morningside-select w-full" disabled>
-                <option value="">All Types</option>
-                {types.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium">Agency</label>
-              <select className="morningside-select w-full" disabled>
-                <option value="">All Agencies</option>
-                {agencies.map((agency) => (
-                  <option key={agency} value={agency}>
-                    {agency}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-2 block text-sm font-medium">Tags</label>
-              <select className="morningside-select w-full" disabled>
-                <option value="">All Tags</option>
-                {allTags.map((tag) => (
-                  <option key={tag} value={tag}>
-                    {tag}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div className="morningside-card">
-          <h2 className="mb-4 text-xl font-semibold">Records</h2>
-          <RecordsTable
-            completeRecords={[
-              ...formattedAgencyRecords,
-              ...(completeRecords || []),
-            ]}
-          />
-        </div>
+        <h1 className="mb-8 text-center text-4xl font-bold">Public Records</h1>
+        <RecordsContent
+          formattedAgencyRecords={formattedAgencyRecords}
+          completeRecords={completeRecords || []}
+          types={types}
+          agencies={agencies}
+          allTags={allTags}
+        />
       </div>
     </div>
   )

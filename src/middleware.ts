@@ -5,13 +5,16 @@ export async function middleware(request: NextRequest) {
   try {
     const { supabase, response } = createMiddlewareClient(request)
 
-    // Refresh session if expired
-    await supabase.auth.getSession()
-
-    // Get the latest session
+    // Verify the user instead of just getting the session
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+
+    if (error) {
+      console.error('Auth error:', error)
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
 
     // Protected routes
     const protectedRoutes = ['/dashboard', '/actions']
@@ -19,7 +22,7 @@ export async function middleware(request: NextRequest) {
       request.nextUrl.pathname.startsWith(route),
     )
 
-    if (isProtectedRoute && !session) {
+    if (isProtectedRoute && !user) {
       const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
       return NextResponse.redirect(redirectUrl)
