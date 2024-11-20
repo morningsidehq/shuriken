@@ -21,12 +21,12 @@
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "type-check": "tsc --pretty --noEmit",
-    "prepare": "[ -n \"$CI\" ] || husky install",
+    "prepare": "exit 0",
     "test": "jest",
     "test:ci": "jest --ci",
     "analyze": "ANALYZE=true npm run build",
     "lint-staged": "lint-staged",
-    "do-build": "HUSKY=0 npm ci && npm run build && npm run copy-public",
+    "do-build": "CI=true npm ci && npm run build && npm run copy-public",
     "copy-public": "cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static"
   },
   "dependencies": {
