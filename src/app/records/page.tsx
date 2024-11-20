@@ -140,7 +140,7 @@ export default async function Records() {
 
         <div className="morningside-card mb-8">
           <h2 className="mb-4 text-xl font-semibold">Filters</h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="mb-2 block text-sm font-medium">Type</label>
               <select className="morningside-select w-full" disabled>

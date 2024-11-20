@@ -54,7 +54,7 @@ export default async function DashboardPage() {
         <p className="my-8 text-center text-xl">What would you like to do?</p>
 
         <div className="morningside-card duration-400 animate-in fade-in">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-3 gap-6">
             <Link href="/records" className="dashboard-action-card">
               <FaFolder className="mb-3 text-4xl text-primary" />
               <h3 className="text-xl font-semibold">View Records</h3>

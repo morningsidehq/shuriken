@@ -1,15 +1,16 @@
 'use client'
 
 import { ReactNode, useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import ActionFilters from './ActionFilters'
 import ActionsTable from './ActionsTable'
 import { Action } from '@/types/actions'
 import ActionForm from './ActionForm'
+import { useSupabase } from '@/providers/SupabaseProvider'
 
 export default function ActionsProvider() {
   const router = useRouter()
+  const { supabase } = useSupabase()
   const [actions, setActions] = useState<Action[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [message, setMessage] = useState<{
@@ -23,7 +24,6 @@ export default function ActionsProvider() {
     assignedTo: '',
   })
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const supabase = createClientComponentClient()
 
   useEffect(() => {
     const fetchActions = async () => {
@@ -73,30 +73,25 @@ export default function ActionsProvider() {
       setIsLoading(true)
       setMessage(null)
 
-      // Get the current user's session
       const {
-        data: { user },
+        data: { session },
         error: sessionError,
-      } = await supabase.auth.getUser()
+      } = await supabase.auth.getSession()
 
-      if (sessionError || !user) {
-        console.error('Session error:', sessionError || 'No user found')
-        setMessage({
-          type: 'error',
-          text: 'Please ensure you are logged in and try again',
-        })
-        return
+      if (sessionError || !session) {
+        throw new Error('Please sign in to create actions')
       }
 
       // Format the data for insertion
       const newAction = {
         action_name: actionData.action_name,
+        action_type: JSON.parse(actionData.metadata).type,
         status: actionData.status,
         date_scheduled: actionData.date_scheduled,
         priority: actionData.priority,
         record_id: actionData.record_id,
         metadata: JSON.parse(actionData.metadata),
-        created_by: user.id,
+        created_by: session.user.id,
         date_created: new Date().toISOString(),
       }
 
@@ -106,14 +101,15 @@ export default function ActionsProvider() {
         .from('actions')
         .insert([newAction])
         .select('*')
+        .single()
 
       if (error) {
         console.error('Supabase error:', error)
         throw error
       }
 
-      if (data && data[0]) {
-        setActions((prevActions) => [...prevActions, data[0]])
+      if (data) {
+        setActions((prevActions) => [data, ...prevActions])
         setMessage({ type: 'success', text: 'Action created successfully!' })
         setIsModalOpen(false)
         setTimeout(() => setMessage(null), 5000)
