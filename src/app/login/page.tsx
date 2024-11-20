@@ -70,6 +70,7 @@ export default async function Login() {
           name="password"
           placeholder="••••••••"
           required
+          autoComplete="current-password"
         />
         <button
           type="submit"
