@@ -19,7 +19,6 @@ type RecordsContentProps = {
   types: string[]
   agencies: string[]
   allTags: string[]
-  onView: (fileName: string) => void
 }
 
 export default function RecordsContent({
@@ -28,7 +27,6 @@ export default function RecordsContent({
   types,
   agencies,
   allTags,
-  onView,
 }: RecordsContentProps) {
   const [typeFilter, setTypeFilter] = useState('')
   const [agencyFilter, setAgencyFilter] = useState('')
