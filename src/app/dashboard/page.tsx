@@ -30,6 +30,13 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
+  // Get user's group from public.profiles table
+  const { data: userData, error: userError } = await supabase
+    .from('profiles')
+    .select('user_group')
+    .eq('id', user.id)
+    .single()
+
   return (
     <>
       <Header />
@@ -38,9 +45,6 @@ export default async function DashboardPage() {
           <h1 className="mb-4 text-2xl font-semibold">
             Welcome to the Constance Dashboard
           </h1>
-          <p className="mb-4 text-muted-foreground">
-            Logged in as: {user.email}
-          </p>
           <Image
             src="/ms_constance_icon.png"
             alt="Constance Logo"
@@ -49,6 +53,19 @@ export default async function DashboardPage() {
             priority
             className="mx-auto"
           />
+          <p className="mt-4 text-muted-foreground">
+            {user.email && (
+              <>
+                Logged in as {user.email}
+                {userData?.user_group && (
+                  <>
+                    {' '}
+                    of {userData.user_group.replace(/([A-Z])/g, ' $1').trim()}
+                  </>
+                )}
+              </>
+            )}
+          </p>
         </div>
 
         <p className="my-8 text-center text-xl">What would you like to do?</p>

@@ -29,9 +29,22 @@ export default function ActionsProvider() {
     const fetchActions = async () => {
       try {
         setIsLoading(true)
+
+        // First ensure we have a valid session
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
+
+        if (sessionError || !session) {
+          throw new Error('No valid session found')
+        }
+
+        // Then fetch the actions
         const { data, error } = await supabase
           .from('actions')
           .select('*')
+          .eq('created_by', session.user.id) // Only fetch user's own actions
           .order('date_created', { ascending: false })
 
         if (error) throw error
@@ -41,7 +54,7 @@ export default function ActionsProvider() {
         console.error('Error fetching actions:', error)
         setMessage({
           type: 'error',
-          text: 'Failed to load actions',
+          text: 'Failed to load actions. Please try refreshing the page.',
         })
       } finally {
         setIsLoading(false)

@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
             Created by Morningside Foundry
           </a>
         </span>
-        <span className={styles.version}>v0.3.4</span>
+        <span className={styles.version}>v0.3.5</span>
       </div>
     </footer>
   )

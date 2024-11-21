@@ -4,6 +4,7 @@ Current Version: v0.3.4
 
 ## Version History
 
+- v0.3.5: Rearranged layout of Dashboard page and added the user's organization to the subtitle. Fixed an issue with the actions page.
 - v0.3.4: Added documentation page.
 - v0.3.3: Fixed runtime error on Public Records page. Fixed issue with build and deployment related to middleware and supabase.
 - v0.3.0: Added agency records page, added PDF viewer, added more detailed filtering options.
