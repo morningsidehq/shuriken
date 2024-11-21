@@ -142,6 +142,11 @@ export default async function Records() {
           types={types}
           agencies={agencies}
           allTags={allTags}
+          onView={(record) => {
+            // Add your view handling logic here
+            // For example:
+            console.log('Viewing record:', record)
+          }}
         />
       </div>
     </div>

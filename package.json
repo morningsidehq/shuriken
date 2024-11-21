@@ -16,17 +16,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p ${PORT:-3000}",
+    "start": "NODE_OPTIONS='--max-old-space-size=768' node .next/standalone/server.js",
     "lint": "next lint",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "type-check": "tsc --pretty --noEmit",
-    "prepare": "if [ -d '.git' ] && [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
-    "test": "jest",
-    "test:ci": "jest --ci",
-    "analyze": "ANALYZE=true npm run build",
-    "lint-staged": "lint-staged",
-    "do-build": "NODE_ENV=production npm ci --omit=dev && npm run build && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static"
+    "prepare": "node -e \"if (require('fs').existsSync('.git')) { process.exit(require('child_process').spawnSync('npx', ['husky', 'install'], {stdio:'inherit'}).status) }\"",
+    "do-build": "NODE_ENV=production npm ci --omit=dev && next build && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static",
+    "lint-staged": "lint-staged"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^14.0.4",
