@@ -26,7 +26,7 @@
     "test:ci": "jest --ci",
     "analyze": "ANALYZE=true npm run build",
     "lint-staged": "lint-staged",
-    "do-build": "NODE_ENV=production npm ci --omit=dev && npm run build"
+    "do-build": "NODE_ENV=production npm ci --omit=dev && npm run build && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static"
   },
   "dependencies": {
     "@next/bundle-analyzer": "^14.0.4",
