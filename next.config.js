@@ -12,6 +12,10 @@ const nextConfig = {
     outputFileTracingIncludes: {
       '/**/*': ['./src/**/*'],
     },
+    turbotrace: {
+      logLevel: 'error',
+      logDetail: true,
+    },
   },
   images: {
     domains: ['rsms.me'],
@@ -29,6 +33,10 @@ const nextConfig = {
       '@': path.join(__dirname, 'src'),
     }
     return config
+  },
+  distDir: '.next',
+  generateBuildId: async () => {
+    return 'build-' + Date.now()
   },
 }
 
