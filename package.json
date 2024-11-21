@@ -22,7 +22,7 @@
     "format-check": "prettier --check .",
     "type-check": "tsc --pretty --noEmit",
     "prepare": "node -e \"if (require('fs').existsSync('.git')) { process.exit(require('child_process').spawnSync('npx', ['husky', 'install'], {stdio:'inherit'}).status) }\"",
-    "do-build": "NODE_ENV=production npm ci --omit=dev && next build && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static",
+    "do-build": "NODE_ENV=production npm ci && next build && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static",
     "lint-staged": "lint-staged"
   },
   "dependencies": {
