@@ -42,7 +42,6 @@ export const createServerClient = (cookieStore: ReturnType<typeof cookies>) =>
       },
     },
   )
-
 export const createMiddlewareClient = (request: NextRequest) => {
   // Create an unmodified response
   let response = NextResponse.next({ request: { headers: request.headers } })

@@ -9,6 +9,8 @@ import {
   FaFastForward,
   FaFileUpload,
   FaPlay,
+  FaGlobe,
+  FaBuilding,
 } from 'react-icons/fa'
 import Image from 'next/image'
 
@@ -72,10 +74,28 @@ export default async function DashboardPage() {
 
         <div className="morningside-card duration-400 animate-in fade-in">
           <div className="grid grid-cols-3 gap-6">
-            <Link href="/records" className="dashboard-action-card">
-              <FaFolder className="mb-3 text-4xl text-primary" />
-              <h3 className="text-xl font-semibold">View Records</h3>
-            </Link>
+            <div className="group relative">
+              <div className="invisible absolute bottom-full left-0 z-10 flex w-full gap-4 pb-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100">
+                <Link
+                  href="/records"
+                  className="dashboard-action-card flex-1 transform text-center transition-transform hover:scale-110"
+                >
+                  <FaGlobe className="mb-3 text-4xl text-primary" />
+                  <h3 className="text-xl font-semibold">Public Records</h3>
+                </Link>
+                <Link
+                  href="/records/agencyrecords"
+                  className="dashboard-action-card flex-1 transform text-center transition-transform hover:scale-110"
+                >
+                  <FaBuilding className="mb-3 text-4xl text-primary" />
+                  <h3 className="text-xl font-semibold">Agency Records</h3>
+                </Link>
+              </div>
+              <div className="dashboard-action-card">
+                <FaFolder className="mb-3 text-4xl text-primary" />
+                <h3 className="text-xl font-semibold">View Records</h3>
+              </div>
+            </div>
 
             <Link href="/search" className="dashboard-action-card">
               <FaSearch className="mb-3 text-4xl text-primary" />
