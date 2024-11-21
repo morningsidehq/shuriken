@@ -1,18 +1,21 @@
+// Import necessary dependencies
 import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
 import Header from '@/components/Header'
 import { redirect } from 'next/navigation'
 import RecordsContent from '@/components/RecordsContent'
 
+// Define page metadata
 export const metadata = {
   title: 'Constance - Public Records',
 }
 
 export default async function Records() {
+  // Initialize Supabase client with cookies
   const cookieStore = cookies()
   const supabase = createServerClient(cookieStore)
 
-  // Get authenticated user
+  // Authenticate user and redirect if not logged in
   const {
     data: { user },
     error: authError,
@@ -22,14 +25,13 @@ export default async function Records() {
     redirect('/login')
   }
 
-  // Get user's group using a direct profile query
+  // Get user's group from profiles table or user metadata
   const { data: userData, error: userError } = await supabase
     .from('profiles')
     .select('user_group')
     .eq('id', user.id)
     .single()
 
-  // If you don't have a profiles table, we can try getting it from user metadata
   const userGroup = userData?.user_group || user?.user_metadata?.user_group
   console.log('User:', user)
   console.log('User group:', userGroup)
@@ -40,12 +42,12 @@ export default async function Records() {
     return <div>Error: Unable to determine user group</div>
   }
 
-  // Fetch agency-specific records from user_objects bucket
+  // Fetch records specific to user's agency from storage bucket
   const { data: agencyRecords, error: agencyError } = await supabase.storage
     .from('user_objects')
     .list(userGroup)
 
-  // Transform storage objects to match Record type
+  // Format agency records to match Record type structure
   const formattedAgencyRecords =
     agencyRecords?.map((record) => ({
       file_name: record.name,
@@ -57,7 +59,7 @@ export default async function Records() {
         .getPublicUrl(`${userGroup}/${record.name}`).data.publicUrl,
     })) || []
 
-  // Query both complete and pending records
+  // Fetch complete records with agency information
   const { data: completeRecords, error: completeError } = await supabase
     .from('records')
     .select(
@@ -71,6 +73,7 @@ export default async function Records() {
     .eq('status', 'complete')
     .order('date_created', { ascending: false })
 
+  // Fetch pending records with agency information
   const { data: pendingRecords, error: pendingError } = await supabase
     .from('records')
     .select(
@@ -84,11 +87,12 @@ export default async function Records() {
     .eq('status', 'pending')
     .order('date_created', { ascending: false })
 
+  // Log records and any errors for debugging
   console.log('Complete Records:', completeRecords)
   console.log('Pending Records:', pendingRecords)
   console.log('Query errors:', completeError, pendingError)
 
-  // Get unique values for filters
+  // Define available record types for filtering
   const types = [
     'Agenda',
     'Contract',
@@ -100,10 +104,14 @@ export default async function Records() {
     'Public Notice',
     'Surity Bond',
   ]
+
+  // Get unique agency names for filtering
   const { data: agencyData } = await supabase.from('agencies').select('name')
   const agencies = Array.from(
     new Set<string>(agencyData?.map((a) => a.name) || []),
   )
+
+  // Get unique tags from all records for filtering
   const allTags = Array.from(
     new Set<string>([
       ...(completeRecords?.flatMap((r) => r.tags || []) || []),
@@ -111,6 +119,7 @@ export default async function Records() {
     ]),
   )
 
+  // Handle and display any errors that occurred during data fetching
   if (completeError || pendingError) {
     const error = completeError || pendingError
     console.error('Error fetching records:', error)
@@ -131,6 +140,7 @@ export default async function Records() {
     )
   }
 
+  // Render the records page with filters and content
   return (
     <div className="flex w-full flex-1 flex-col items-center gap-8">
       <Header />

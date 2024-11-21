@@ -4,6 +4,14 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 const path = require('path')
 
+const withMDX = require('@next/mdx')({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -40,4 +48,4 @@ const nextConfig = {
   },
 }
 
-module.exports = withBundleAnalyzer(nextConfig)
+module.exports = withBundleAnalyzer(withMDX(nextConfig))
