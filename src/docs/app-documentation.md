@@ -1,10 +1,10 @@
 # Constance Application Documentation
 
-Current Version: v0.4.2
+Current Version: v0.4.23
 
 ## Version History
 
-- v0.4.2: Fixed TypeScript error with AgencyRecordsTable.tsx causing build failure.
+- v0.4.23: Fixed TypeScript error with AgencyRecordsTable.tsx causing build failure. Fixed issue with calendar component.
 - v0.4.1: Styling and layout overhaul to shadcn/ui. Updated login component. Fixed issue with org records appearing in public records page.
 - v0.4.0: Installed shadcn/ui. Added dark mode toggle. Fixed header navigation menu.
 - v0.3.7: Further updated session handling. Login button should now redirect immediately.
