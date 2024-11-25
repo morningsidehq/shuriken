@@ -1,15 +1,29 @@
+import { cookies } from 'next/headers'
+import { createServerClient } from '@/utils/supabase'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import Header from '@/components/Header'
 
 export const metadata = {
   title: 'Constance - Log Out Successful',
 }
 
-export default function LogoutPage() {
+export default async function LogoutPage() {
+  const cookieStore = cookies()
+  const supabase = createServerClient(cookieStore)
+
+  // Check if user is already logged out
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
+
+  // If user is still logged in, force a logout
+  if (user) {
+    await supabase.auth.signOut()
+  }
+
   return (
     <div className="flex w-full flex-1 flex-col items-center gap-8">
-      <Header />
-
       <div className="container py-8">
         <h1 className="mb-8 text-center text-4xl font-bold">
           Log Out Successful

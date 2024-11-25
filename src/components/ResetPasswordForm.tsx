@@ -2,24 +2,54 @@
 
 import { createBrowserClient } from '@/utils/supabase'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function ResetPasswordForm() {
   const router = useRouter()
   const supabase = createBrowserClient()
+  const [loading, setLoading] = useState(true)
 
-  const handlePasswordReset = async (formData: FormData) => {
-    const password = String(formData.get('password'))
+  useEffect(() => {
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-    const { error } = await supabase.auth.updateUser({
-      password: password,
-    })
+      // Also check for the reset password token in the URL
+      const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      const type = hashParams.get('type')
 
-    if (error) {
-      router.push('/reset-password?message=Failed to reset password')
-      return
+      if (!session && type !== 'recovery') {
+        window.location.href = '/login?message=Invalid or expired reset link'
+        return
+      }
+      setLoading(false)
     }
 
-    router.push('/login?message=Password updated successfully')
+    checkSession()
+  }, [])
+
+  const handlePasswordReset = async (formData: FormData) => {
+    try {
+      const password = String(formData.get('password'))
+
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      })
+
+      if (error) throw error
+
+      // Sign out and redirect to login
+      await supabase.auth.signOut()
+      window.location.href = '/login?message=Password updated successfully'
+    } catch (error) {
+      console.error('Error resetting password:', error)
+      window.location.href = '/reset-password?message=Failed to reset password'
+    }
+  }
+
+  if (loading) {
+    return <div>Loading...</div>
   }
 
   return (

@@ -8,16 +8,33 @@ export default function LogoutButton({ className }: { className?: string }) {
   const supabase = createBrowserClient()
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
+    try {
+      // Verify user authentication state securely before logout
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user) {
+        // User is already logged out
+        router.push('/login')
+        return
+      }
+
+      // Proceed with logout
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+
+      // Clear local storage
+      localStorage.clear()
+
+      // Use Next.js router instead of window.location
+      router.push('/logout')
+
+      // Force a router refresh to update the UI
+      router.refresh()
+    } catch (error) {
       console.error('Error logging out:', error)
-      return
+      router.push('/login?error=Failed to logout properly')
     }
-    await Promise.all([
-      router.refresh(),
-      new Promise((resolve) => setTimeout(resolve, 100)),
-    ])
-    router.replace('/logout')
   }
 
   return (

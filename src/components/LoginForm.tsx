@@ -24,16 +24,12 @@ export default function LoginForm() {
     }
 
     const redirectTo = searchParams.get('redirectTo') || '/dashboard'
-    await Promise.all([
-      router.refresh(),
-      new Promise((resolve) => setTimeout(resolve, 100)),
-    ])
-    router.replace(redirectTo)
+    router.push(redirectTo)
   }
 
   const handleResetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`,
     })
 
     if (error) {
@@ -78,7 +74,7 @@ export default function LoginForm() {
           Email
         </label>
         <input
-          className="mb-6 rounded-md border bg-inherit px-4 py-2"
+          className="mb-6 rounded-md border bg-white px-4 py-2 text-black"
           name="email"
           placeholder="you@example.com"
           required
@@ -87,7 +83,7 @@ export default function LoginForm() {
           Password
         </label>
         <input
-          className="mb-6 rounded-md border bg-inherit px-4 py-2"
+          className="mb-6 rounded-md border bg-white px-4 py-2 text-black"
           type="password"
           name="password"
           placeholder="••••••••"

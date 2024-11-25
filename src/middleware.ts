@@ -5,33 +5,38 @@ export async function middleware(request: NextRequest) {
   try {
     const { supabase, response } = createMiddlewareClient(request)
 
-    // Get the session first
+    // Get the authenticated user
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
 
     // Check if we're on the login or logout page
     const isLoginPage = request.nextUrl.pathname === '/login'
     const isLogoutPage = request.nextUrl.pathname === '/logout'
 
-    // Protected routes
-    const protectedRoutes = ['/dashboard', '/actions', '/records', '/logout']
+    // Protected routes and public auth routes
+    const protectedRoutes = ['/dashboard', '/actions', '/records']
+    const publicAuthRoutes = ['/login', '/signup', '/reset-password']
     const isProtectedRoute = protectedRoutes.some((route) =>
       request.nextUrl.pathname.startsWith(route),
     )
+    const isPublicAuthRoute = publicAuthRoutes.some((route) =>
+      request.nextUrl.pathname.startsWith(route),
+    )
 
-    // If user is logged in and trying to access login page, redirect to dashboard
-    if (session && isLoginPage) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-
-    // If user is logged in and accessing logout page, allow it
-    if (isLogoutPage && session) {
+    // Special handling for logout page
+    if (isLogoutPage) {
       return response
     }
 
+    // If user is logged in and trying to access public auth pages, redirect to dashboard
+    if (user && isPublicAuthRoute) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
     // If user is not logged in and trying to access protected route, redirect to login
-    if (isProtectedRoute && !session) {
+    if (isProtectedRoute && !user) {
       const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
       return NextResponse.redirect(redirectUrl)
@@ -40,11 +45,7 @@ export async function middleware(request: NextRequest) {
     return response
   } catch (e) {
     console.error('Middleware error:', e)
-    // Only redirect to login if not already on login page to prevent loops
-    if (request.nextUrl.pathname !== '/login') {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-    return NextResponse.next()
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 }
 
@@ -54,5 +55,6 @@ export const config = {
     '/dashboard/:path*',
     '/actions/:path*',
     '/records/:path*',
+    '/reset-password',
   ],
 }

@@ -8,15 +8,20 @@ import { ChevronDown } from 'lucide-react'
 export default async function Header() {
   const cookieStore = cookies()
   const supabase = createServerClient(cookieStore)
+
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm transition-shadow duration-200 ease-in-out hover:shadow-md">
       <div className="container flex h-14 items-center">
         <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center gap-2">
+          <Link
+            href={user ? '/dashboard' : '/'}
+            className="hover:scale-103 flex items-center gap-2 transition-transform duration-200"
+          >
             <Image
               src="/ms_constance_icon.png"
               alt="Constance Logo"
@@ -28,17 +33,17 @@ export default async function Header() {
         </div>
 
         <nav className="flex flex-1 items-center justify-center gap-8">
-          {session ? (
+          {user ? (
             <>
               <Link
                 href="/dashboard"
-                className="text-sm font-medium hover:text-foreground/80"
+                className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
               >
                 Home
               </Link>
               <div className="group relative">
                 <button
-                  className="flex items-center gap-1 py-2 text-sm font-medium hover:text-foreground/80"
+                  className="hover:scale-103 flex items-center gap-1 py-2 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
                   aria-haspopup="true"
                   aria-expanded="false"
                 >
@@ -70,13 +75,13 @@ export default async function Header() {
               </div>
               <Link
                 href="/search"
-                className="text-sm font-medium hover:text-foreground/80"
+                className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
               >
                 Search
               </Link>
               <div className="group relative">
                 <button
-                  className="flex items-center gap-1 py-2 text-sm font-medium hover:text-foreground/80"
+                  className="hover:scale-103 flex items-center gap-1 py-2 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
                   aria-haspopup="true"
                   aria-expanded="false"
                 >
@@ -108,7 +113,7 @@ export default async function Header() {
               </div>
               <div className="group relative">
                 <button
-                  className="flex items-center gap-1 py-2 text-sm font-medium hover:text-foreground/80"
+                  className="hover:scale-103 flex items-center gap-1 py-2 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
                   aria-haspopup="true"
                   aria-expanded="false"
                 >
@@ -142,14 +147,14 @@ export default async function Header() {
           ) : (
             <Link
               href="/login"
-              className="text-sm font-medium hover:text-foreground/80"
+              className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
             >
               Login
             </Link>
           )}
         </nav>
 
-        {session && (
+        {user && (
           <div className="flex items-center">
             <LogoutButton />
           </div>
