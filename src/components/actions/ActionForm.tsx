@@ -2,6 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { useSupabase } from '@/providers/SupabaseProvider'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 
 interface ActionFormProps {
   isOpen: boolean
@@ -66,59 +82,82 @@ export default function ActionForm({
     onClose()
   }
 
-  if (!isOpen) return null
-
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-md rounded-lg bg-white p-6">
-        <h2 className="mb-4 text-xl font-bold">View Action</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="mb-1 block">Action Name</label>
-            <div className="w-full rounded border p-2">
-              {formData.action_name}
-            </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Create New Action</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="action_name">Action Name</Label>
+            <Input
+              id="action_name"
+              value={formData.action_name}
+              onChange={(e) =>
+                setFormData({ ...formData, action_name: e.target.value })
+              }
+            />
           </div>
 
-          <div>
-            <label className="mb-1 block">Status</label>
-            <div className="w-full rounded border p-2">{formData.status}</div>
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value) =>
+                setFormData({ ...formData, status: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label className="mb-1 block">Date Scheduled</label>
-            <div className="w-full rounded border p-2">
-              {formData.date_scheduled}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="priority">Priority</Label>
+            <Select
+              value={formData.priority}
+              onValueChange={(value) =>
+                setFormData({ ...formData, priority: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label className="mb-1 block">Priority</label>
-            <div className="w-full rounded border p-2">{formData.priority}</div>
-          </div>
-
-          <div>
-            <label className="mb-1 block">Record</label>
-            <div className="w-full rounded border p-2">{searchTerm}</div>
-          </div>
-
-          <div>
-            <label className="mb-1 block">Metadata Type</label>
-            <div className="w-full rounded border p-2">
-              {JSON.parse(formData.metadata).type}
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="date_scheduled">Schedule Date</Label>
+            <Input
+              id="date_scheduled"
+              type="datetime-local"
+              value={formData.date_scheduled}
+              onChange={(e) =>
+                setFormData({ ...formData, date_scheduled: e.target.value })
+              }
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <button
-              onClick={onClose}
-              className="rounded border px-4 py-2 hover:bg-gray-100"
-            >
-              Close
-            </button>
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit">Create Action</Button>
           </div>
-        </div>
-      </div>
-    </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

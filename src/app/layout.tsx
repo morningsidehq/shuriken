@@ -9,6 +9,8 @@ import Footer from '@/components/Footer'
 import SupabaseProvider from '@/providers/SupabaseProvider'
 import { createServerClient } from '@/utils/supabase'
 import { cookies } from 'next/headers'
+import { cn } from '@/lib/utils'
+import BackToTop from '@/components/BackToTop'
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -37,27 +39,33 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={GeistSans.className}
-      style={{ colorScheme: 'dark' }}
+      className={cn(GeistSans.className, 'antialiased')}
+      suppressHydrationWarning
     >
-      <body className="bg-[hsl(var(--page-background))] text-foreground">
+      <body
+        className={cn(
+          'min-h-screen bg-background font-sans antialiased',
+          'transition-colors duration-200',
+        )}
+      >
         <NextTopLoader showSpinner={false} height={2} color="#2acf80" />
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
+          disableTransitionOnChange={false}
         >
           <SupabaseProvider session={session}>
             <ReactQueryProvider>
-              <main className="flex min-h-screen flex-col items-center">
-                {children}
+              <div className="relative flex min-h-screen flex-col">
+                <div className="flex-1">{children}</div>
                 <Analytics />
                 <Footer />
-              </main>
-              {process.env.NODE_ENV === 'development' && (
+                <BackToTop />
+              </div>
+              {/* {process.env.NODE_ENV === 'development' && (
                 <ReactQueryDevtools initialIsOpen={false} />
-              )}
+              )} */}
             </ReactQueryProvider>
           </SupabaseProvider>
         </ThemeProvider>

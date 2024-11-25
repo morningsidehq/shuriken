@@ -1,97 +1,117 @@
 'use client'
 import { useState } from 'react'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
 
 type Props = {
   types: string[]
   agencies: string[]
-  tags: string[]
-  onApplyFilters: (filters: FilterState) => void
+  allTags: string[]
+  onApplyFilters?: (filters: FilterState) => void
 }
 
 type FilterState = {
-  type: string
-  agency: string
-  tag: string
+  types: string[]
+  agencies: string[]
+  tags: string[]
 }
 
 export default function RecordsFilters({
   types,
   agencies,
-  tags,
+  allTags,
   onApplyFilters,
 }: Props) {
-  const [filters, setFilters] = useState<FilterState>({
-    type: '',
-    agency: '',
-    tag: '',
+  const [selectedFilters, setSelectedFilters] = useState<FilterState>({
+    types: [],
+    agencies: [],
+    tags: [],
   })
 
-  const sortedAgencies = [...agencies].sort((a, b) =>
-    a.toLowerCase().localeCompare(b.toLowerCase()),
-  )
-
-  const handleFilterChange = (field: keyof FilterState, value: string) => {
-    setFilters((prev) => ({ ...prev, [field]: value }))
+  const handleFilterChange = (category: keyof FilterState, value: string) => {
+    setSelectedFilters((prev) => {
+      const current = prev[category]
+      const updated = current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value]
+      return { ...prev, [category]: updated }
+    })
   }
 
   return (
-    <div className="morningside-card mb-8">
-      <h2 className="mb-4 text-xl font-semibold">Filters</h2>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div>
-          <label className="mb-2 block text-sm font-medium">Type</label>
-          <select
-            className="morningside-select w-full"
-            value={filters.type}
-            onChange={(e) => handleFilterChange('type', e.target.value)}
-          >
-            <option value="">All Types</option>
-            {types.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-2 block text-sm font-medium">Agency</label>
-          <select
-            className="morningside-select w-full"
-            value={filters.agency}
-            onChange={(e) => handleFilterChange('agency', e.target.value)}
-          >
-            <option value="">All Agencies</option>
-            {sortedAgencies.map((agency) => (
-              <option key={agency} value={agency}>
-                {agency}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="mb-2 block text-sm font-medium">Tags</label>
-          <select
-            className="morningside-select w-full"
-            value={filters.tag}
-            onChange={(e) => handleFilterChange('tag', e.target.value)}
-          >
-            <option value="">All Tags</option>
-            {tags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <div className="mt-4 flex justify-end">
-        <button
-          className="morningside-button"
-          onClick={() => onApplyFilters(filters)}
-        >
-          Apply Filters
-        </button>
-      </div>
+    <div className="space-y-4 pt-8">
+      <h3 className="font-semibold">Filters</h3>
+      <Accordion type="multiple" className="w-full">
+        <AccordionItem value="type">
+          <AccordionTrigger>Record Types</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              {types.map((type) => (
+                <div key={type} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`type-${type}`}
+                    checked={selectedFilters.types.includes(type)}
+                    onCheckedChange={() => handleFilterChange('types', type)}
+                  />
+                  <Label htmlFor={`type-${type}`}>{type}</Label>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="agency">
+          <AccordionTrigger>Agencies</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              {agencies.map((agency) => (
+                <div key={agency} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`agency-${agency}`}
+                    checked={selectedFilters.agencies.includes(agency)}
+                    onCheckedChange={() =>
+                      handleFilterChange('agencies', agency)
+                    }
+                  />
+                  <Label htmlFor={`agency-${agency}`}>{agency}</Label>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="tags">
+          <AccordionTrigger>Tags</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              {allTags.map((tag) => (
+                <div key={tag} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`tag-${tag}`}
+                    checked={selectedFilters.tags.includes(tag)}
+                    onCheckedChange={() => handleFilterChange('tags', tag)}
+                  />
+                  <Label htmlFor={`tag-${tag}`}>{tag}</Label>
+                </div>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <Button
+        className="w-full"
+        onClick={() => onApplyFilters?.(selectedFilters)}
+      >
+        Apply Filters
+      </Button>
     </div>
   )
 }

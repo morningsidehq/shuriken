@@ -1,6 +1,17 @@
 'use client'
 
 import { Action } from '@/types/actions'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Pencil, Trash2 } from 'lucide-react'
 
 interface ActionsTableProps {
   actions: Action[]
@@ -15,89 +26,104 @@ export default function ActionsTable({
   onEdit,
   isLoading = false,
 }: ActionsTableProps) {
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'default'
+      case 'in_progress':
+        return 'secondary'
+      case 'pending':
+        return 'outline'
+      default:
+        return 'default'
+    }
+  }
+
+  const getPriorityVariant = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'destructive'
+      case 'medium':
+        return 'secondary'
+      case 'low':
+        return 'secondary'
+      default:
+        return 'default'
+    }
+  }
+
   if (isLoading) {
     return (
-      <div className="flex justify-center p-4">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900" />
+      <div className="flex justify-center p-8">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
       </div>
     )
   }
 
   if (actions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white p-8 text-center">
-        <p className="text-lg text-gray-600">
-          You do not currently have any actions. Try adding a new one!
+      <div className="flex flex-col items-center justify-center p-8 text-center">
+        <p className="text-lg text-muted-foreground">
+          No actions found. Try adding a new one!
         </p>
       </div>
     )
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Name
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Type
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Priority
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Scheduled
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Created By
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {actions.map((action) => (
-            <tr key={action.id}>
-              <td className="whitespace-nowrap px-6 py-4">
-                {action.action_name}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4">
-                {action.metadata?.type ?? '-'}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4">{action.status}</td>
-              <td className="whitespace-nowrap px-6 py-4">{action.priority}</td>
-              <td className="whitespace-nowrap px-6 py-4">
-                {action.date_scheduled
-                  ? new Date(action.date_scheduled).toLocaleDateString()
-                  : '-'}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4">
-                {action.created_by.email}
-              </td>
-              <td className="whitespace-nowrap px-6 py-4">
-                <button
-                  onClick={() => onEdit(action.id)}
-                  className="mr-2 text-blue-600 hover:text-blue-900"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => onDelete(action.id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Priority</TableHead>
+          <TableHead>Scheduled</TableHead>
+          <TableHead>Created By</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {actions.map((action) => (
+          <TableRow key={action.id}>
+            <TableCell>{action.action_name}</TableCell>
+            <TableCell>{action.metadata?.type ?? '-'}</TableCell>
+            <TableCell>
+              <Badge variant={getStatusVariant(action.status)}>
+                {action.status.replace('_', ' ')}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <Badge variant={getPriorityVariant(action.priority)}>
+                {action.priority}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              {action.date_scheduled
+                ? new Date(action.date_scheduled).toLocaleDateString()
+                : '-'}
+            </TableCell>
+            <TableCell>{action.created_by.email}</TableCell>
+            <TableCell className="text-right">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(action.id)}
+                className="mr-2"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(action.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   )
 }

@@ -1,22 +1,27 @@
 'use client'
+import { useState } from 'react'
+import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Search } from 'lucide-react'
 
-import { Dispatch, SetStateAction } from 'react'
+type Filters = {
+  type: string
+  status: string
+  priority: string
+  assignedTo: string
+}
 
-interface FilterProps {
-  filters: {
-    type: string
-    status: string
-    priority: string
-    assignedTo: string
-  }
-  setFilters: Dispatch<
-    SetStateAction<{
-      type: string
-      status: string
-      priority: string
-      assignedTo: string
-    }>
-  >
+interface ActionFiltersProps {
+  filters: Filters
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>
   onApplyFilters: () => void
 }
 
@@ -24,94 +29,107 @@ export default function ActionFilters({
   filters,
   setFilters,
   onApplyFilters,
-}: FilterProps) {
-  const actionTypes = ['Email', 'SMS', 'Call', 'Meeting', 'Task']
-  const statusOptions = ['Pending', 'In Progress', 'Completed', 'Cancelled']
-  const priorityOptions = ['Low', 'Medium', 'High', 'Urgent']
-
+}: ActionFiltersProps) {
   return (
-    <div className="mb-8 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-      <h2 className="mb-4 text-xl font-semibold">Filters</h2>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Type
-          </label>
-          <select
-            value={filters.type}
-            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          >
-            <option value="">All Types</option>
-            {actionTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Status
-          </label>
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          >
-            <option value="">All Statuses</option>
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Priority
-          </label>
-          <select
-            value={filters.priority}
-            onChange={(e) =>
-              setFilters({ ...filters, priority: e.target.value })
-            }
-            className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          >
-            <option value="">All Priorities</option>
-            {priorityOptions.map((priority) => (
-              <option key={priority} value={priority}>
-                {priority}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Assigned To
-          </label>
-          <input
-            type="text"
-            value={filters.assignedTo}
-            onChange={(e) =>
-              setFilters({ ...filters, assignedTo: e.target.value })
-            }
-            placeholder="Enter email"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
-          />
-        </div>
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input placeholder="Search actions..." className="pl-8" />
       </div>
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={onApplyFilters}
-          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-        >
-          Apply Filters
-        </button>
-      </div>
+
+      <Accordion type="multiple" className="w-full">
+        <AccordionItem value="status">
+          <AccordionTrigger>Status</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="active" />
+                <Label htmlFor="active">Active</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="completed" />
+                <Label htmlFor="completed">Completed</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="pending" />
+                <Label htmlFor="pending">Pending</Label>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="type">
+          <AccordionTrigger>Type</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox id="automated" />
+                <Label htmlFor="automated">Automated</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox id="manual" />
+                <Label htmlFor="manual">Manual</Label>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="date">
+          <AccordionTrigger>Date Range</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="start-date">Start Date</Label>
+                <Input type="date" id="start-date" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="end-date">End Date</Label>
+                <Input type="date" id="end-date" />
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="priority">
+          <AccordionTrigger>Priority</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="high"
+                  checked={filters.priority === 'high'}
+                  onCheckedChange={() =>
+                    setFilters({ ...filters, priority: 'high' })
+                  }
+                />
+                <Label htmlFor="high">High</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="medium"
+                  checked={filters.priority === 'medium'}
+                  onCheckedChange={() =>
+                    setFilters({ ...filters, priority: 'medium' })
+                  }
+                />
+                <Label htmlFor="medium">Medium</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="low"
+                  checked={filters.priority === 'low'}
+                  onCheckedChange={() =>
+                    setFilters({ ...filters, priority: 'low' })
+                  }
+                />
+                <Label htmlFor="low">Low</Label>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <Button className="w-full">Apply Filters</Button>
     </div>
   )
 }

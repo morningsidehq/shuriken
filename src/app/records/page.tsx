@@ -4,6 +4,8 @@ import { createServerClient } from '@/utils/supabase'
 import Header from '@/components/Header'
 import { redirect } from 'next/navigation'
 import RecordsContent from '@/components/RecordsContent'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import RecordsFilters from '@/components/RecordsFilters'
 
 // Define page metadata
 export const metadata = {
@@ -41,23 +43,6 @@ export default async function Records() {
     console.error('No user group found:', userError)
     return <div>Error: Unable to determine user group</div>
   }
-
-  // Fetch records specific to user's agency from storage bucket
-  const { data: agencyRecords, error: agencyError } = await supabase.storage
-    .from('user_objects')
-    .list(userGroup)
-
-  // Format agency records to match Record type structure
-  const formattedAgencyRecords =
-    agencyRecords?.map((record) => ({
-      file_name: record.name,
-      type: record.metadata?.type || 'Unknown',
-      status: 'complete',
-      date_created: record.created_at,
-      object_upload_url: supabase.storage
-        .from('user_objects')
-        .getPublicUrl(`${userGroup}/${record.name}`).data.publicUrl,
-    })) || []
 
   // Fetch complete records with agency information
   const { data: completeRecords, error: completeError } = await supabase
@@ -142,17 +127,28 @@ export default async function Records() {
 
   // Render the records page with filters and content
   return (
-    <div className="flex w-full flex-1 flex-col items-center gap-8">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <div className="container py-8">
-        <h1 className="mb-8 text-center text-4xl font-bold">Public Records</h1>
-        <RecordsContent
-          formattedAgencyRecords={formattedAgencyRecords}
-          completeRecords={completeRecords || []}
-          types={types}
-          agencies={agencies}
-          allTags={allTags}
-        />
+      <div className="container flex-1 py-8">
+        <h1 className="mb-8 scroll-m-20 text-center text-4xl font-extrabold tracking-tight lg:text-5xl">
+          Public Records
+        </h1>
+        <div className="flex gap-6">
+          {/* Sticky sidebar */}
+          <div className="sticky top-8 h-[calc(100vh-12rem)] w-[280px] shrink-0">
+            <ScrollArea className="h-full rounded-lg border border-border bg-card p-4">
+              <RecordsFilters
+                types={types}
+                agencies={agencies}
+                allTags={allTags}
+              />
+            </ScrollArea>
+          </div>
+          {/* Main content */}
+          <div className="flex-1">
+            <RecordsContent completeRecords={completeRecords || []} />
+          </div>
+        </div>
       </div>
     </div>
   )

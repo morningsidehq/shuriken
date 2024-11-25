@@ -1,9 +1,10 @@
 # Constance Application Documentation
 
-Current Version: v0.4.0
+Current Version: v0.4.1
 
 ## Version History
 
+- v0.4.1: Styling and layout overhaul to shadcn/ui. Updated login component. Fixed issue with org records appearing in public records page.
 - v0.4.0: Installed shadcn/ui. Added dark mode toggle. Fixed header navigation menu.
 - v0.3.7: Further updated session handling. Login button should now redirect immediately.
 - v0.3.6: Updated session handling to attempt to get the Login, Logout buttons to redirect immediately. Added Global and Agency buttons to view records on dashboard.

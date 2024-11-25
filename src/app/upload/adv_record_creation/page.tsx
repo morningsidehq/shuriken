@@ -3,6 +3,8 @@ import { createServerClient } from '@/utils/supabase'
 import Header from '@/components/Header'
 import { redirect } from 'next/navigation'
 import AdvancedRecordForm from '@/components/AdvancedRecordForm'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export const metadata = {
   title: 'Constance - Create Record',
@@ -48,13 +50,20 @@ export default async function AdvancedRecordCreation() {
           Create New Record
         </h1>
 
-        <div className="mb-4 rounded bg-white p-2 text-left">
-          Uploading to: <strong>{formatUserGroup(userGroup)}</strong>
-        </div>
+        <Alert className="mb-4">
+          <AlertDescription>
+            Uploading to: <strong>{formatUserGroup(userGroup)}</strong>
+          </AlertDescription>
+        </Alert>
 
-        <div className="morningside-card">
-          <AdvancedRecordForm userGroup={userGroup} />
-        </div>
+        <Card>
+          <CardHeader>
+            <h2 className="text-xl font-semibold">File Upload</h2>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <AdvancedRecordForm userGroup={userGroup} />
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

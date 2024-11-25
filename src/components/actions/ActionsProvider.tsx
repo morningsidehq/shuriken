@@ -1,12 +1,28 @@
 'use client'
 
-import { ReactNode, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Card } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from '@/components/ui/button'
 import ActionFilters from './ActionFilters'
 import ActionsTable from './ActionsTable'
-import { Action } from '@/types/actions'
 import ActionForm from './ActionForm'
+import { Action } from '@/types/actions'
 import { useSupabase } from '@/providers/SupabaseProvider'
+
+type Filters = {
+  type: string
+  status: string
+  priority: string
+  assignedTo: string
+}
+
+interface ActionFiltersProps {
+  filters: Filters
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>
+  onApplyFilters: () => void
+}
 
 export default function ActionsProvider() {
   const router = useRouter()
@@ -139,44 +155,50 @@ export default function ActionsProvider() {
   }
 
   return (
-    <div>
-      {/* Message display */}
-      {message && (
-        <div
-          className={`mb-4 rounded-md p-4 ${
-            message.type === 'success'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-red-100 text-red-700'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
-
-      <div className="mb-4 flex items-center justify-between">
-        <ActionFilters
-          filters={filters}
-          setFilters={setFilters}
-          onApplyFilters={handleApplyFilters}
-        />
-        <button
-          onClick={handleAddAction}
-          className="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-        >
-          Add New Action
-        </button>
+    <div className="flex gap-6">
+      {/* Sticky sidebar */}
+      <div className="sticky top-8 h-[calc(100vh-12rem)] w-[280px] shrink-0">
+        <ScrollArea className="h-full rounded-lg border bg-card p-4">
+          <ActionFilters
+            filters={filters}
+            setFilters={setFilters}
+            onApplyFilters={handleApplyFilters}
+          />
+        </ScrollArea>
       </div>
-      <ActionsTable
-        actions={actions}
-        onDelete={handleDelete}
-        onEdit={handleEdit}
-        isLoading={isLoading}
-      />
-      <ActionForm
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={handleSubmitAction}
-      />
+
+      {/* Main content */}
+      <div className="flex-1">
+        {message && (
+          <div
+            className={`mb-4 rounded-lg border px-4 py-3 text-sm ${
+              message.type === 'success'
+                ? 'border-green-200 bg-green-50 text-green-800'
+                : 'border-red-200 bg-red-50 text-red-800'
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
+
+        <Card>
+          <div className="flex items-center justify-between border-b p-4">
+            <h2 className="text-lg font-semibold">Actions List</h2>
+            <Button onClick={handleAddAction}>Add New Action</Button>
+          </div>
+          <ActionsTable
+            actions={actions}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+            isLoading={isLoading}
+          />
+        </Card>
+        <ActionForm
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleSubmitAction}
+        />
+      </div>
     </div>
   )
 }

@@ -3,6 +3,8 @@ import { createServerClient } from '@/utils/supabase'
 import Header from '@/components/Header'
 import { redirect } from 'next/navigation'
 import FileUploader from '@/components/FileUploader'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export const metadata = {
   title: 'Constance - Quick Document Intake',
@@ -51,19 +53,22 @@ export default async function Upload() {
           Quick Document Intake
         </h1>
 
-        <div className="mb-4 rounded bg-white p-2 text-left">
-          Uploading to: <strong>{formatUserGroup(userGroup)}</strong>
-        </div>
+        <Alert className="mb-4">
+          <AlertDescription>
+            Uploading to: <strong>{formatUserGroup(userGroup)}</strong>
+          </AlertDescription>
+        </Alert>
 
-        <div className="morningside-card">
-          <div className="mb-4">
+        <Card>
+          <CardHeader>
             <h2 className="text-xl font-semibold">
               Upload and Classify Documents
             </h2>
-          </div>
-
-          <FileUploader userGroup={userGroup} />
-        </div>
+          </CardHeader>
+          <CardContent>
+            <FileUploader userGroup={userGroup} />
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

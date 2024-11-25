@@ -12,6 +12,8 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu'
+import { cn } from '@/lib/utils'
+import { ThemeToggle } from './ThemeToggle'
 
 export default async function Header() {
   const cookieStore = cookies()
@@ -23,153 +25,160 @@ export default async function Header() {
   } = await supabase.auth.getUser()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background shadow-sm transition-shadow duration-200 ease-in-out hover:shadow-md">
-      <div className="container flex h-14 items-center">
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 max-w-screen-2xl items-center">
+        <div className="mr-4 flex">
           <Link
             href={user ? '/dashboard' : '/'}
-            className="hover:scale-103 flex items-center gap-2 transition-transform duration-200"
+            className="mr-6 flex items-center space-x-2"
           >
             <Image
               src="/ms_constance_icon.png"
               alt="Constance Logo"
               width={24}
               height={24}
+              className="h-6 w-6"
             />
-            <span className="text-xl font-semibold">Constance</span>
+            <span className="hidden font-bold sm:inline-block">Constance</span>
           </Link>
         </div>
 
         {user ? (
-          <div className="flex flex-1 items-center justify-center gap-4">
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <Link href="/dashboard" legacyBehavior passHref>
-                    <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
-                      Home
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+            <nav className="flex items-center">
+              <div className="flex space-x-2">
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link href="/dashboard" legacyBehavior passHref>
+                        <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
+                          Home
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
 
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
-                    Records
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="w-48 rounded-md bg-popover p-2 shadow-md">
-                      <li>
-                        <Link
-                          href="/records"
-                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                        >
-                          Public Records
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/records/agencyrecords"
-                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                        >
-                          Agency Records
-                        </Link>
-                      </li>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
+                        Records
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="min-w-[200px] rounded-md border border-border bg-popover p-2 shadow-md">
+                          <li>
+                            <Link
+                              href="/records"
+                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                            >
+                              Public Records
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              href="/records/agencyrecords"
+                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                            >
+                              Agency Records
+                            </Link>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
 
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <Link href="/search" legacyBehavior passHref>
-                    <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
-                      Search
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link href="/search" legacyBehavior passHref>
+                        <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
+                          Search
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
 
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
-                    Upload
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="w-48 rounded-md bg-popover p-2 shadow-md">
-                      <li>
-                        <Link
-                          href="/upload"
-                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                        >
-                          Quick Intake
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/upload/adv_record_creation"
-                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                        >
-                          Record Creation
-                        </Link>
-                      </li>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
+                        Upload
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="min-w-[200px] rounded-md border border-border bg-popover p-2 shadow-md">
+                          <li>
+                            <Link
+                              href="/upload"
+                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                            >
+                              Quick Intake
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              href="/upload/adv_record_creation"
+                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                            >
+                              Record Creation
+                            </Link>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
 
-            <NavigationMenu>
-              <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
-                    Actions
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="w-48 rounded-md bg-popover p-2 shadow-md">
-                      <li>
-                        <Link
-                          href="/actions"
-                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                        >
-                          View Actions
-                        </Link>
-                      </li>
-                      <li>
-                        <Link
-                          href="/actions?new=true"
-                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                        >
-                          Create New Action
-                        </Link>
-                      </li>
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
+                        Actions
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="min-w-[200px] rounded-md border border-border bg-popover p-2 shadow-md">
+                          <li>
+                            <Link
+                              href="/actions"
+                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                            >
+                              View Actions
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              href="/actions?new=true"
+                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                            >
+                              Create New Action
+                            </Link>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+              </div>
+            </nav>
+
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <LogoutButton className="px-4" />
+            </div>
           </div>
         ) : (
-          <nav className="flex flex-1 items-center justify-center">
+          <div className="flex flex-1 items-center justify-end gap-2 md:flex">
+            <ThemeToggle />
             <Link
               href="/login"
-              className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
+              className={cn(
+                'text-sm font-medium transition-colors hover:text-primary',
+              )}
             >
               Login
             </Link>
-          </nav>
-        )}
-
-        {user && (
-          <div className="flex items-center">
-            <LogoutButton />
           </div>
         )}
       </div>

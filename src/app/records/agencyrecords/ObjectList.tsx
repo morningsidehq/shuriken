@@ -2,7 +2,10 @@
 
 import { useState } from 'react'
 import { useSupabase } from '@/providers/SupabaseProvider'
-import AgencyRecordsContent from '@/components/AgencyRecordsContent'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import RecordsFilters from '@/components/RecordsFilters'
+import AgencyRecordsTable from '@/components/AgencyRecordsTable'
 
 type ObjectListProps = {
   initialRecords: {
@@ -26,19 +29,39 @@ export default function ObjectList({
   const [records, setRecords] = useState(initialRecords)
   const { supabase } = useSupabase()
 
-  // Get unique types for filter
+  // Get unique values for filters
   const types = Array.from(new Set(records.map((record) => record.type)))
+  const allTags = Array.from(
+    new Set(records.flatMap((record) => record.tags || [])),
+  )
 
   return (
-    <div className="flex w-full flex-1 flex-col items-center gap-8">
-      <div className="container py-8">
-        <h1 className="mb-8 text-center text-4xl font-bold">Agency Records</h1>
-        <AgencyRecordsContent
-          formattedAgencyRecords={records}
-          types={types}
-          agencies={[userGroup]}
-          allTags={[]}
-        />
+    <div className="container flex-1 py-8">
+      <h1 className="mb-8 scroll-m-20 text-center text-4xl font-extrabold tracking-tight lg:text-5xl">
+        Agency Records
+      </h1>
+      <div className="flex gap-6">
+        {/* Sticky sidebar */}
+        <div className="sticky top-8 h-[calc(100vh-12rem)] w-[280px] shrink-0">
+          <ScrollArea className="h-full rounded-lg border border-border bg-card p-4">
+            <RecordsFilters
+              types={types}
+              agencies={[userGroup]}
+              allTags={allTags}
+            />
+          </ScrollArea>
+        </div>
+        {/* Main content */}
+        <div className="flex-1">
+          <Card className="border-border">
+            <CardHeader>
+              <CardTitle>Records</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AgencyRecordsTable records={records} />
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )

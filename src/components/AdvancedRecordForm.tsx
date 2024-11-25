@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createBrowserClient } from '@/utils/supabase'
 import FileUploader from '@/components/FileUploader'
+import { Button } from '@/components/ui/button'
 
 export default function AdvancedRecordForm({
   userGroup,
@@ -273,17 +274,9 @@ export default function AdvancedRecordForm({
         />
       </div>
       <div className="flex gap-4">
-        <button
-          type="submit"
-          disabled={uploading}
-          className={`rounded px-4 py-2 text-white ${
-            uploading
-              ? 'cursor-not-allowed bg-gray-400'
-              : 'bg-primary hover:bg-primary/90'
-          }`}
-        >
+        <Button type="submit" className="w-full" disabled={uploading}>
           {uploading ? 'Creating Record...' : 'Create Record'}
-        </button>
+        </Button>
         <button
           type="button"
           className="morningside-button-secondary"
