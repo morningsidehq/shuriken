@@ -1,9 +1,10 @@
 # Constance Application Documentation
 
-Current Version: v0.3.4
+Current Version: v0.4.0
 
 ## Version History
 
+- v0.4.0: Installed shadcn/ui. Added dark mode toggle. Fixed header navigation menu.
 - v0.3.7: Further updated session handling. Login button should now redirect immediately.
 - v0.3.6: Updated session handling to attempt to get the Login, Logout buttons to redirect immediately. Added Global and Agency buttons to view records on dashboard.
 - v0.3.5: Rearranged layout of Dashboard page and added the user's organization to the subtitle. Fixed an issue with the actions page.

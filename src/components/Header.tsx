@@ -4,6 +4,14 @@ import { createServerClient } from '@/utils/supabase'
 import LogoutButton from './LogoutButton'
 import Image from 'next/image'
 import { ChevronDown } from 'lucide-react'
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from '@/components/ui/navigation-menu'
 
 export default async function Header() {
   const cookieStore = cookies()
@@ -32,127 +40,132 @@ export default async function Header() {
           </Link>
         </div>
 
-        <nav className="flex flex-1 items-center justify-center gap-8">
-          {user ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
-              >
-                Home
-              </Link>
-              <div className="group relative">
-                <button
-                  className="hover:scale-103 flex items-center gap-1 py-2 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  Records
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                <div
-                  className="invisible absolute left-0 top-full w-48 pt-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100"
-                  role="menu"
-                  aria-orientation="vertical"
-                >
-                  <div className="rounded-md bg-white py-2 shadow-lg">
-                    <Link
-                      href="/records"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Public Records
-                    </Link>
-                    <Link
-                      href="/records/agencyrecords"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Agency Records
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <Link
-                href="/search"
-                className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
-              >
-                Search
-              </Link>
-              <div className="group relative">
-                <button
-                  className="hover:scale-103 flex items-center gap-1 py-2 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  Upload
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                <div
-                  className="invisible absolute left-0 top-full w-48 pt-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100"
-                  role="menu"
-                  aria-orientation="vertical"
-                >
-                  <div className="rounded-md bg-white py-2 shadow-lg">
-                    <Link
-                      href="/upload"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Quick Intake
-                    </Link>
-                    <Link
-                      href="/upload/adv_record_creation"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Record Creation
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="group relative">
-                <button
-                  className="hover:scale-103 flex items-center gap-1 py-2 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                >
-                  Actions
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-                <div
-                  className="invisible absolute left-0 top-full w-48 pt-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100"
-                  role="menu"
-                  aria-orientation="vertical"
-                >
-                  <div className="rounded-md bg-white py-2 shadow-lg">
-                    <Link
-                      href="/actions"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      View Actions
-                    </Link>
-                    <Link
-                      href="/actions?new=true"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      Create New Action
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
+        {user ? (
+          <div className="flex flex-1 items-center justify-center gap-4">
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <Link href="/dashboard" legacyBehavior passHref>
+                    <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
+                      Home
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
+                    Records
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="w-48 rounded-md bg-popover p-2 shadow-md">
+                      <li>
+                        <Link
+                          href="/records"
+                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                        >
+                          Public Records
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/records/agencyrecords"
+                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                        >
+                          Agency Records
+                        </Link>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <Link href="/search" legacyBehavior passHref>
+                    <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
+                      Search
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
+                    Upload
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="w-48 rounded-md bg-popover p-2 shadow-md">
+                      <li>
+                        <Link
+                          href="/upload"
+                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                        >
+                          Quick Intake
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/upload/adv_record_creation"
+                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                        >
+                          Record Creation
+                        </Link>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
+                    Actions
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="w-48 rounded-md bg-popover p-2 shadow-md">
+                      <li>
+                        <Link
+                          href="/actions"
+                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                        >
+                          View Actions
+                        </Link>
+                      </li>
+                      <li>
+                        <Link
+                          href="/actions?new=true"
+                          className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                        >
+                          Create New Action
+                        </Link>
+                      </li>
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
+        ) : (
+          <nav className="flex flex-1 items-center justify-center">
             <Link
               href="/login"
               className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80"
             >
               Login
             </Link>
-          )}
-        </nav>
+          </nav>
+        )}
 
         {user && (
           <div className="flex items-center">

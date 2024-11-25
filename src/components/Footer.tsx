@@ -1,7 +1,11 @@
 import React from 'react'
 import styles from './Footer.module.css'
+import { getAppVersion } from '@/utils/getAppVersion'
+import { ThemeToggle } from './ThemeToggle'
 
-const Footer: React.FC = () => {
+const Footer = async () => {
+  const version = await getAppVersion()
+
   return (
     <footer className={styles.footer}>
       <div className={styles.footerContent}>
@@ -14,7 +18,12 @@ const Footer: React.FC = () => {
             Created by Morningside Foundry
           </a>
         </span>
-        <span className={styles.version}>v0.3.7</span>
+
+        <div className="flex items-center justify-center">
+          <ThemeToggle />
+        </div>
+
+        <span className={styles.version}>{version}</span>
       </div>
     </footer>
   )
