@@ -1,9 +1,10 @@
 # Constance Application Documentation
 
-Current Version: v0.4.1
+Current Version: v0.4.2
 
 ## Version History
 
+- v0.4.2: Fixed TypeScript error with AgencyRecordsTable.tsx causing build failure.
 - v0.4.1: Styling and layout overhaul to shadcn/ui. Updated login component. Fixed issue with org records appearing in public records page.
 - v0.4.0: Installed shadcn/ui. Added dark mode toggle. Fixed header navigation menu.
 - v0.3.7: Further updated session handling. Login button should now redirect immediately.
@@ -13,7 +14,7 @@ Current Version: v0.4.1
 - v0.3.3: Fixed runtime error on Public Records page. Fixed issue with build and deployment related to middleware and supabase.
 - v0.3.0: Added agency records page, added PDF viewer, added more detailed filtering options.
 - v0.2.51: Changed the deployment settings to work better with Digital Ocean.
-- v0.2.5: Added insert ability to actions page. Added filter capabilities to actions page.
+- v0.2.5: Added insert ability to actions page. 213 filter capabilities to actions page.
 - v0.2.41: Removed all Mobile-specific styling and RWD as it was causing issues.
 - v0.2.4: Added the Actions page and some functionality.
 - v0.2.3: Added advanced record creation, changed landing page for Constance-specific, added dashboard links with updated styling/layout, added Constance logo to loading screen.

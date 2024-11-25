@@ -26,27 +26,11 @@ export default function AgencyRecordsContent({
   agencies,
   allTags,
 }: AgencyRecordsContentProps) {
-  const [typeFilter, setTypeFilter] = useState('')
-  const [agencyFilter, setAgencyFilter] = useState('')
-  const [tagFilter, setTagFilter] = useState('')
-
   return (
     <>
-      {/* Filters temporarily removed for Agency Records page
-      <div className="morningside-card mb-8">
-        <h2 className="mb-4 text-xl font-semibold">Filters</h2>
-        ... filter UI ...
-      </div>
-      */}
-
       <div className="morningside-card">
         <h2 className="mb-4 text-xl font-semibold">Records</h2>
-        <AgencyRecordsTable
-          records={formattedAgencyRecords}
-          typeFilter={typeFilter}
-          agencyFilter={agencyFilter}
-          tagFilter={tagFilter}
-        />
+        <AgencyRecordsTable records={formattedAgencyRecords} />
       </div>
     </>
   )

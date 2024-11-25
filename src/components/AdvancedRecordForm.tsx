@@ -35,7 +35,7 @@ export default function AdvancedRecordForm({
       if (data) setAgencies(data)
     }
     fetchAgencies()
-  }, [])
+  }, [supabase])
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -48,7 +48,7 @@ export default function AdvancedRecordForm({
       }
     }
     initializeSession()
-  }, [])
+  }, [supabase.auth])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

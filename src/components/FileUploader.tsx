@@ -30,7 +30,7 @@ export default function FileUploader({
       }
     }
     checkSession()
-  }, [])
+  }, [supabase.auth])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

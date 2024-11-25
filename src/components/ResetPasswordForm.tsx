@@ -27,7 +27,7 @@ export default function ResetPasswordForm() {
     }
 
     checkSession()
-  }, [])
+  }, [supabase.auth])
 
   const handlePasswordReset = async (formData: FormData) => {
     try {

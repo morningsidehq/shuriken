@@ -21,7 +21,7 @@ type Record = {
   object_upload_url: string
 }
 
-type AgencyRecordsTableProps = {
+interface AgencyRecordsTableProps {
   records: Record[]
 }
 
