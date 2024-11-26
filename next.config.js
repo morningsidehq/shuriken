@@ -16,10 +16,6 @@ const withMDX = require('@next/mdx')({
 const nextConfig = {
   output: 'standalone',
   experimental: {
-    outputFileTracingRoot: process.cwd(),
-    outputFileTracingIncludes: {
-      '/**/*': ['./src/**/*'],
-    },
     turbotrace: {
       logLevel: 'error',
       logDetail: true,
@@ -29,7 +25,7 @@ const nextConfig = {
     domains: ['rsms.me'],
     unoptimized: true,
   },
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/_next' : '',
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_URL || '',
   poweredByHeader: false,
   compress: true,
   serverRuntimeConfig: {
@@ -44,8 +40,10 @@ const nextConfig = {
   },
   distDir: '.next',
   generateBuildId: async () => {
-    return 'build-' + Date.now()
+    const timestamp = Math.floor(Date.now() / 1000)
+    return `build${timestamp}`
   },
 }
 
-module.exports = withBundleAnalyzer(withMDX(nextConfig))
+const config = withMDX(nextConfig)
+module.exports = withBundleAnalyzer(config)

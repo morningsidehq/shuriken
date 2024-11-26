@@ -2,6 +2,12 @@ import { render, screen, waitFor } from '@/test/test-utils'
 import ReactQueryExample from './ReactQueryExample'
 import { server } from '@/mocks/server'
 import { HttpResponse, http } from 'msw'
+import { afterEach, beforeAll, afterAll } from '@jest/globals'
+
+// Setup MSW
+beforeAll(() => server.listen())
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
 
 describe('<ReactQueryExample/>', () => {
   it('Renders the loading screen', () => {
@@ -11,8 +17,9 @@ describe('<ReactQueryExample/>', () => {
 
   it('Renders data from the handler', async () => {
     render(<ReactQueryExample />)
-
-    await screen.findByText('Hello from the handler!')
+    await waitFor(() => {
+      expect(screen.getByText('Hello from the handler!')).toBeInTheDocument()
+    })
   })
 
   it('Renders data from overridden handler', async () => {
@@ -23,7 +30,10 @@ describe('<ReactQueryExample/>', () => {
     )
 
     render(<ReactQueryExample />)
-
-    await screen.findByText('Hello from the overridden handler!')
+    await waitFor(() => {
+      expect(
+        screen.getByText('Hello from the overridden handler!'),
+      ).toBeInTheDocument()
+    })
   })
 })

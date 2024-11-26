@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import AgencyRecordsTable from './AgencyRecordsTable'
 
 type Record = {
@@ -34,7 +34,7 @@ export default function AgencyRecordsContent({
   const [selectedAgency, setSelectedAgency] = useState('')
   const [selectedTag, setSelectedTag] = useState('')
 
-  const handleFilter = () => {
+  const handleFilter = useCallback(() => {
     let results = formattedAgencyRecords
 
     // Filter by search term
@@ -62,7 +62,13 @@ export default function AgencyRecordsContent({
     }
 
     setFilteredRecords(results)
-  }
+  }, [
+    formattedAgencyRecords,
+    searchTerm,
+    selectedType,
+    selectedAgency,
+    selectedTag,
+  ])
 
   const resetFilters = () => {
     setSearchTerm('')
@@ -74,7 +80,7 @@ export default function AgencyRecordsContent({
 
   useEffect(() => {
     handleFilter()
-  }, [searchTerm, selectedType, selectedAgency, selectedTag])
+  }, [handleFilter])
 
   return (
     <div className="space-y-4">

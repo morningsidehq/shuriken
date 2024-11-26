@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import debounce from 'lodash/debounce'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -18,47 +18,52 @@ export default function SearchInterface() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedPdfUrl, setSelectedPdfUrl] = useState('')
 
-  const performSearch = async (query: string, page: number = 1) => {
-    if (query.length < 2 || isLoading) return
+  const performSearch = useCallback(
+    async (query: string, page: number = 1) => {
+      if (query.length < 2 || isLoading) return
 
-    setIsLoading(true)
-    try {
-      console.log('Searching with query:', query)
-      const searchUrl = `https://${TYPESENSE_HOST}/collections/chunks/documents/search?q=${encodeURIComponent(query)}&query_by=content&page=${page}&per_page=10`
-      console.log('Search URL:', searchUrl)
+      setIsLoading(true)
+      try {
+        console.log('Searching with query:', query)
+        const searchUrl = `https://${TYPESENSE_HOST}/collections/chunks/documents/search?q=${encodeURIComponent(
+          query,
+        )}&query_by=content&page=${page}&per_page=10`
+        console.log('Search URL:', searchUrl)
 
-      const response = await fetch(searchUrl, {
-        headers: {
-          'X-TYPESENSE-API-KEY': TYPESENSE_API_KEY || '',
-          'Content-Type': 'application/json',
-        },
-      })
+        const response = await fetch(searchUrl, {
+          headers: {
+            'X-TYPESENSE-API-KEY': TYPESENSE_API_KEY || '',
+            'Content-Type': 'application/json',
+          },
+        })
 
-      if (!response.ok) {
-        throw new Error(`Search failed with status: ${response.status}`)
+        if (!response.ok) {
+          throw new Error(`Search failed with status: ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log('Search response:', data)
+
+        if (page === 1) {
+          setSearchResults(data.hits || [])
+        } else {
+          setSearchResults((prev) => [...prev, ...(data.hits || [])])
+        }
+
+        setCurrentPage(page + 1)
+      } catch (error) {
+        console.error('Search error:', error)
+        setSearchResults([])
+      } finally {
+        setIsLoading(false)
       }
+    },
+    [isLoading],
+  )
 
-      const data = await response.json()
-      console.log('Search response:', data)
-
-      if (page === 1) {
-        setSearchResults(data.hits || [])
-      } else {
-        setSearchResults((prev) => [...prev, ...(data.hits || [])])
-      }
-
-      setCurrentPage(page + 1)
-    } catch (error) {
-      console.error('Search error:', error)
-      setSearchResults([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const debouncedSearch = useCallback(
-    debounce((query: string) => performSearch(query), 300),
-    [],
+  const debouncedSearch = useMemo(
+    () => debounce((query: string) => performSearch(query), 300),
+    [performSearch],
   )
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +103,9 @@ export default function SearchInterface() {
                 const recordId = hit.document.record_id
                 const refValue = hit.document.ref
                 const fileUrl = refValue
-                  ? `https://apzyykplpafkatrlsklz.supabase.co/storage/v1/object/public/pdfs/appomattox-town/ref/${refValue.charAt(0).toUpperCase() + refValue.slice(1)}.pdf`
+                  ? `https://apzyykplpafkatrlsklz.supabase.co/storage/v1/object/public/pdfs/appomattox-town/ref/${
+                      refValue.charAt(0).toUpperCase() + refValue.slice(1)
+                    }.pdf`
                   : `https://apzyykplpafkatrlsklz.supabase.co/storage/v1/object/public/pdfs/appomattox-town/record_${recordId}/record_${recordId}.pdf`
 
                 return (
