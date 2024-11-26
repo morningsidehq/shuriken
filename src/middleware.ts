@@ -8,44 +8,48 @@ export async function middleware(request: NextRequest) {
     // Get the authenticated user
     const {
       data: { user },
-      error,
     } = await supabase.auth.getUser()
 
-    // Check if we're on the login or logout page
-    const isLoginPage = request.nextUrl.pathname === '/login'
-    const isLogoutPage = request.nextUrl.pathname === '/logout'
-
-    // Protected routes and public auth routes
+    // Define route configurations
     const protectedRoutes = ['/dashboard', '/actions', '/records']
     const publicAuthRoutes = ['/login', '/signup', '/reset-password']
+    const currentPath = request.nextUrl.pathname
+
+    // Check route types
     const isProtectedRoute = protectedRoutes.some((route) =>
-      request.nextUrl.pathname.startsWith(route),
+      currentPath.startsWith(route),
     )
     const isPublicAuthRoute = publicAuthRoutes.some((route) =>
-      request.nextUrl.pathname.startsWith(route),
+      currentPath.startsWith(route),
     )
+    const isLogoutPage = currentPath === '/logout'
 
-    // Special handling for logout page
+    // Special handling for logout page - allow the logout process to complete
     if (isLogoutPage) {
       return response
     }
 
-    // If user is logged in and trying to access public auth pages, redirect to dashboard
+    // Redirect authenticated users away from auth pages
     if (user && isPublicAuthRoute) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // If user is not logged in and trying to access protected route, redirect to login
-    if (isProtectedRoute && !user) {
+    // Redirect unauthenticated users to login with return URL
+    if (!user && isProtectedRoute) {
       const redirectUrl = new URL('/login', request.url)
-      redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+      redirectUrl.searchParams.set('redirectTo', currentPath)
       return NextResponse.redirect(redirectUrl)
     }
 
     return response
   } catch (e) {
+    // Log the error but don't expose details in production
     console.error('Middleware error:', e)
-    return NextResponse.redirect(new URL('/login', request.url))
+
+    // Safely redirect to login while preserving the intended destination
+    const redirectUrl = new URL('/login', request.url)
+    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 }
 

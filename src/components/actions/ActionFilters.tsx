@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+// import { useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -129,7 +129,9 @@ export default function ActionFilters({
         </AccordionItem>
       </Accordion>
 
-      <Button className="w-full">Apply Filters</Button>
+      <Button className="w-full" onClick={onApplyFilters}>
+        Apply Filters
+      </Button>
     </div>
   )
 }

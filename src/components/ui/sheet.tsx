@@ -25,9 +25,10 @@ const portalVariants = cva('fixed inset-0 z-50 flex', {
   defaultVariants: { position: 'right' },
 })
 
-interface SheetPortalProps
-  extends SheetPrimitive.DialogPortalProps,
-    VariantProps<typeof portalVariants> {}
+type SheetPortalProps = SheetPrimitive.DialogPortalProps & {
+  position?: VariantProps<typeof portalVariants>['position']
+  className?: string
+}
 
 const SheetPortal = ({
   position,
@@ -35,8 +36,10 @@ const SheetPortal = ({
   children,
   ...props
 }: SheetPortalProps) => (
-  <SheetPrimitive.Portal className={cn(className)} {...props}>
-    <div className={portalVariants({ position })}>{children}</div>
+  <SheetPrimitive.Portal {...props}>
+    <div className={cn(portalVariants({ position }), className)}>
+      {children}
+    </div>
   </SheetPrimitive.Portal>
 )
 SheetPortal.displayName = SheetPrimitive.Portal.displayName

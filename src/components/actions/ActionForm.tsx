@@ -150,6 +150,34 @@ export default function ActionForm({
             />
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="record_search">Search Records</Label>
+            <Input
+              id="record_search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search for a record..."
+            />
+            {isSearching && <div>Searching...</div>}
+            {records.length > 0 && (
+              <div className="mt-2 max-h-32 overflow-y-auto rounded border p-2">
+                {records.map((record) => (
+                  <div
+                    key={record.nanoid}
+                    className="cursor-pointer rounded p-1 hover:bg-gray-100"
+                    onClick={() => {
+                      setFormData({ ...formData, record_id: record.nanoid })
+                      setSearchTerm(record.file_name)
+                      setRecords([])
+                    }}
+                  >
+                    {record.file_name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="outline" onClick={onClose}>
               Cancel

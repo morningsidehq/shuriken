@@ -66,33 +66,17 @@
   }
 }
 
-/* Add some utility classes for common Morningside patterns */
 @layer components {
+  /* Container and Layout */
   .morningside-container {
     @apply max-w-7xl mx-auto px-8;
   }
   
+  /* Cards and Interactive Elements */
   .morningside-card {
     @apply bg-card text-card-foreground rounded-lg shadow-sm border border-border p-6;
   }
   
-  .morningside-input {
-    @apply w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-  
-  .morningside-button {
-    @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
-  }
-  
-  .morningside-select {
-    @apply bg-background text-foreground border border-input rounded-lg px-3 py-2 w-full shadow-sm transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-  
-  .dashboard-action-card svg {
-    @apply text-foreground;
-    transition: color 0.2s ease;
-  }
-
   .dashboard-action-card {
     @apply flex flex-col items-center justify-center p-6 rounded-lg border border-border;
     @apply bg-card text-card-foreground;
@@ -104,19 +88,39 @@
     box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15);
   }
 
+  /* Form Elements */
+  .morningside-input {
+    @apply w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background;
+    @apply placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+  
+  .morningside-button {
+    @apply inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium;
+    @apply text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2;
+    @apply focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  .morningside-select,
+  .morningside-search {
+    @apply bg-background text-foreground border border-input rounded-lg px-3 py-2 w-full shadow-sm;
+    @apply transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .morningside-search:hover {
+    @apply shadow-inner;
+  }
+
+  /* SVG and Icon Styles */
+  .dashboard-action-card svg {
+    @apply text-foreground;
+    transition: color 0.2s ease;
+  }
+
   .dashboard-action-card:hover svg {
     @apply text-[#B22234];  /* Constance red color on hover */
   }
 
-  .company a {
-    transition: color 0.2s ease;
-  }
-
-  .company a:hover {
-    @apply text-[#B22234];
-  }
-}
-  /* Tables */
+  /* Table Styles */
   .morningside-table-container {
     @apply w-full overflow-x-auto;
   }
@@ -149,15 +153,7 @@
     @apply px-4 py-2;
   }
 
-  /* Search bar styles */
-  .morningside-search {
-    @apply bg-background text-foreground border border-input rounded-lg px-3 py-2 w-full shadow-sm transition-shadow duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
-  }
-
-  .morningside-search:hover {
-    @apply shadow-inner;
-  }
-
+  /* Scroll Container */
   .vertical-scroll-container {
     max-height: calc(100vh - 200px);
     overflow-y: auto;
@@ -179,3 +175,13 @@
   .vertical-scroll-container::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/50;
   }
+
+  /* Link Styles */
+  .company a {
+    transition: color 0.2s ease;
+  }
+
+  .company a:hover {
+    @apply text-[#B22234];
+  }
+}

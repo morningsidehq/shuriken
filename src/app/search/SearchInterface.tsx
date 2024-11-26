@@ -5,7 +5,6 @@ import debounce from 'lodash/debounce'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { X } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 
 const TYPESENSE_API_KEY = process.env.NEXT_PUBLIC_TYPESENSE_API_KEY

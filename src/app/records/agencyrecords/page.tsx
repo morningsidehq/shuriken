@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Header from '@/components/Header'
 import ObjectList from './ObjectList'
 import { cookies } from 'next/headers'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default async function AgencyRecordsPage() {
   const cookieStore = cookies()
@@ -61,12 +62,31 @@ export default async function AgencyRecordsPage() {
         })) || []
 
     return (
-      <div className="flex w-full flex-1 flex-col items-center gap-8">
+      <div className="flex min-h-screen flex-col">
         <Header />
-        <ObjectList
-          initialRecords={formattedRecords}
-          userGroup={userData.user_group}
-        />
+        <div className="container flex-1 py-8">
+          <h1 className="mb-8 scroll-m-20 text-center text-4xl font-extrabold tracking-tight lg:text-5xl">
+            Agency Records
+          </h1>
+          <div className="flex gap-6">
+            {/* Sticky sidebar */}
+            <div className="sticky top-8 h-[calc(100vh-12rem)] w-[280px] shrink-0">
+              <ScrollArea className="h-full rounded-lg border border-border bg-card p-4">
+                <div className="space-y-4">
+                  <h2 className="font-semibold">Filters</h2>
+                  {/* Filters will be moved here */}
+                </div>
+              </ScrollArea>
+            </div>
+            {/* Main content */}
+            <div className="flex-1">
+              <ObjectList
+                initialRecords={formattedRecords}
+                userGroup={userData.user_group}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     )
   } catch (error) {

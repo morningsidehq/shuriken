@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
-import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -16,7 +15,6 @@ export default async function LogoutPage() {
   // Check if user is already logged out
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser()
 
   // If user is still logged in, force a logout

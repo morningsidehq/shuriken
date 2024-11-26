@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import RecordsTable from './RecordsTable'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 

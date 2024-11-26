@@ -2,13 +2,12 @@
 
 import { createBrowserClient } from '@/utils/supabase'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 export default function LoginForm() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const supabase = createBrowserClient()
 
   const handleSignIn = async (formData: FormData) => {

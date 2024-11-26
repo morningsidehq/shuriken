@@ -1,11 +1,9 @@
 'use client'
 
 import { createBrowserClient } from '@/utils/supabase'
-import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function ResetPasswordForm() {
-  const router = useRouter()
   const supabase = createBrowserClient()
   const [loading, setLoading] = useState(true)
 

@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const { data: userData, error: userError } = await supabase
+  const { data: userData } = await supabase
     .from('profiles')
     .select('user_group')
     .eq('id', user.id)

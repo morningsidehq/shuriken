@@ -3,7 +3,6 @@ import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
 import LogoutButton from './LogoutButton'
 import Image from 'next/image'
-import { ChevronDown } from 'lucide-react'
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -21,7 +20,6 @@ export default async function Header() {
 
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser()
 
   return (

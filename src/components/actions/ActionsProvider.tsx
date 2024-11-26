@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button } from '@/components/ui/button'
@@ -18,14 +17,7 @@ type Filters = {
   assignedTo: string
 }
 
-interface ActionFiltersProps {
-  filters: Filters
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>
-  onApplyFilters: () => void
-}
-
 export default function ActionsProvider() {
-  const router = useRouter()
   const { supabase } = useSupabase()
   const [actions, setActions] = useState<Action[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -33,7 +25,7 @@ export default function ActionsProvider() {
     type: 'success' | 'error'
     text: string
   } | null>(null)
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     type: '',
     status: '',
     priority: '',
@@ -84,11 +76,18 @@ export default function ActionsProvider() {
     // Filter logic here
   }
 
-  const handleDelete = (id: number) => {
-    // Delete logic here
+  const handleDelete = async (id: number) => {
+    try {
+      const { error } = await supabase.from('actions').delete().eq('id', id)
+      if (error) throw error
+      setActions(actions.filter((action) => action.id !== id))
+      setMessage({ type: 'success', text: 'Action deleted successfully!' })
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to delete action' })
+    }
   }
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (_id: number) => {
     // Edit logic here
   }
 

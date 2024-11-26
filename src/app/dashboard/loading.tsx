@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 export default function DashboardLoading() {
   return (
     <div className="container py-10">
