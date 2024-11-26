@@ -1,9 +1,12 @@
 # Constance Application Documentation
 
-Current Version: v0.4.4
+Current Version: v0.4.6
 
 ## Version History
 
+- v0.4.6: Added Entity analysis page.
+- v0.4.55: Added more detailed commenting throughout the codebase.
+- v0.4.5: Implemented shadcn/ui components across all major pages. Overhauled Records, Agency Records, and Intake pages.
 - v0.4.4: Fixed issue with TypeScript error with AgencyRecordsTable.tsx causing build failure. Fixed issue with calendar component.
 - v0.4.3: Overhauled Agency Records page. Fixed multiple build/deployment issues with components. Fixed upload intake area.
 - v0.4.23: Fixed TypeScript error with AgencyRecordsTable.tsx causing build failure. Fixed issue with calendar component.
@@ -56,37 +59,36 @@ Protected page featuring:
 #### 4. Records Management
 
 ##### Public Records (`src/app/records/page.tsx`)
-- Displays all accessible records
-- Features filtering capabilities
+- Redesigned with shadcn/ui components
+- Features enhanced filtering capabilities with multi-select dropdowns
+- Improved table layout with sorting and pagination
 
 Components:
-- **RecordsContent**: Main content container
-- **RecordsTable**: Displays filtered records
-- **RecordsFilters**: Filtering interface
+- **RecordsContent**: Main content container using shadcn/ui Card
+- **DataTable**: New shadcn/ui table component with built-in sorting and filtering
+- **FilterDropdowns**: Enhanced filters using shadcn/ui Select and MultiSelect
 
 ##### Agency Records (`src/app/records/agencyrecords/page.tsx`)
-- Agency-specific record viewing
+- Completely overhauled with shadcn/ui components
+- Enhanced document preview capabilities
+- Improved metadata display
 
 Components:
-- **AgencyRecordsContent**: Main content container
-- **AgencyRecordsTable**: Agency-specific record display
-- **ObjectList**: Record list management
+- **AgencyRecordsDataTable**: New shadcn/ui table implementation
+- **DocumentPreview**: Enhanced PDF viewer with shadcn/ui Dialog
+- **MetadataDisplay**: New metadata panel using shadcn/ui Accordion
 
 #### 5. Upload System
 
-##### Quick Upload (`src/app/upload/page.tsx`)
-- Simple document upload interface
+##### Intake System (`src/app/upload/page.tsx`)
+- Redesigned upload interface using shadcn/ui components
+- Improved drag-and-drop functionality
+- Progress tracking with shadcn/ui Progress component
 
 Components:
-- **FileUploader**: Handles file selection and upload
-- **FileInput**: Basic file input component
-
-##### Advanced Record Creation (`src/app/upload/adv_record_creation/page.tsx`)
-- Detailed record creation interface
-
-Components:
-- **AdvancedRecordForm**: Complex form for detailed record creation
-- **FileUploader**: Reused for file handling
+- **FileUploadZone**: Enhanced upload area with visual feedback
+- **UploadProgress**: New progress tracking interface
+- **FileList**: Improved file list display using shadcn/ui components
 
 #### 6. Actions Management (`src/app/actions/page.tsx`)
 - Task and action management interface
@@ -114,6 +116,47 @@ Components:
   - Responsive design that works across devices
   - Keyboard shortcuts for navigation (Esc to close, arrow keys for pages)
 
+#### 8. Analytics Pages (`src/app/analytics/page.tsx`)
+- Entity analysis and visualization interface
+- Interactive timeline visualization using Recharts
+- Real-time entity search capabilities
+
+Components:
+- **EntitySearch**: Real-time entity search with debounced input
+  - Uses shadcn/ui Command component for search interface
+  - Autocomplete suggestions with agency names
+  - Debounced search with 300ms delay
+  - Error handling for failed searches
+
+- **TimelineChart**: Interactive scatter plot showing entity occurrences over time
+  - Built with Recharts ScatterChart
+  - Color-coded entities with persistent color assignments
+  - Custom tooltip showing detailed record information
+  - Automatic date formatting on X-axis
+  - Responsive container adapting to viewport size
+  - Legend for multiple entity tracking
+
+Features:
+- Multi-entity selection and comparison
+- Color-coded entity visualization using a predefined palette
+- Document occurrence tracking with record IDs
+- Interactive timeline navigation
+- Real-time search suggestions from agency database
+- Error handling and validation using Zod
+- Responsive visualization using Recharts
+
+API Routes:
+- **/api/entity-analytics/search**: Entity search endpoint
+  - Handles agency name searches with partial matching
+  - Returns up to 10 matching results
+  - Input validation with Zod schema
+
+- **/api/entity-analytics/timeline**: Timeline data retrieval endpoint
+  - Accepts multiple entity parameters
+  - Returns chronological record occurrences
+  - Includes record metadata (ID, date, entity name)
+  - Supports filtering by agency IDs
+
 ### Shared Components
 
 #### Layout Components
@@ -131,21 +174,23 @@ Components:
 - Server-side authentication state management
 
 ### Styling
-- Tailwind CSS for primary styling
-- Custom CSS modules for specific components
-- Responsive design considerations
-- Dark theme support
+- Primary UI framework: shadcn/ui
+- Theme customization through tailwind.config.js
+- Dark mode support using shadcn/ui's built-in theming
+- Consistent component styling across the application
+- Responsive design maintained through shadcn/ui's built-in responsive components
 
 ## Detailed Page Functions
 
 #### Login Page (`src/app/login/page.tsx`)
-- Handles user authentication through Supabase Auth
-- Provides email/password login form
-- Implements "magic link" authentication option
-- Redirects authenticated users to dashboard
-- Error handling for invalid credentials
-- Loading states during authentication
-- Session persistence using cookies
+- Redesigned with shadcn/ui components
+- Enhanced error handling and validation
+- Improved loading states
+
+Components:
+- **LoginForm**: New form implementation using shadcn/ui Form components
+- **AuthButtons**: Styled using shadcn/ui Button
+- **ErrorDisplay**: Enhanced error messaging using shadcn/ui Toast
 
 #### Dashboard Page (`src/app/dashboard/page.tsx`) 
 - Protected route requiring authentication
@@ -185,3 +230,21 @@ Components:
 - Deadline management and notifications
 - Integration with user roles and permissions
 - Collaborative features for team coordination
+
+## API Structure
+
+### Entity Analytics
+
+#### Search Endpoint (`/api/entity-analytics/search`)
+- Handles entity search queries
+- Input validation using Zod schema
+- Returns matching entity suggestions
+
+#### Timeline Endpoint (`/api/entity-analytics/timeline`)
+- Processes requests for entity timeline data
+- Supports multiple entity parameters
+- Returns occurrence data including:
+  - Entity name
+  - Entity type
+  - Record date
+  - Record ID

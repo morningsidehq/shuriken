@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
-import Header from '@/components/Header'
 import { redirect } from 'next/navigation'
 import AdvancedRecordForm from '@/components/AdvancedRecordForm'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
@@ -43,8 +42,6 @@ export default async function AdvancedRecordCreation() {
 
   return (
     <div className="flex w-full flex-1 flex-col items-center gap-8">
-      <Header />
-
       <div className="container py-8">
         <h1 className="mb-8 text-center text-4xl font-bold">
           Create New Record

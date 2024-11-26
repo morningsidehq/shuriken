@@ -10,6 +10,8 @@ import { createServerClient } from '@/utils/supabase'
 import { cookies } from 'next/headers'
 import { cn } from '@/lib/utils'
 import BackToTop from '@/components/BackToTop'
+import Header from '@/components/Header'
+import { headers } from 'next/headers'
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -35,6 +37,14 @@ export default async function RootLayout({
     data: { session },
   } = await supabase.auth.getSession()
 
+  // Get the current pathname
+  const headersList = headers()
+  const pathname = headersList.get('x-pathname') || '/'
+
+  // Define paths where header should be hidden
+  const hideHeaderPaths = ['/login', '/signup', '/reset-password']
+  const shouldShowHeader = !hideHeaderPaths.includes(pathname) && session
+
   return (
     <html
       lang="en"
@@ -57,14 +67,12 @@ export default async function RootLayout({
           <SupabaseProvider session={session}>
             <ReactQueryProvider>
               <div className="relative flex min-h-screen flex-col">
-                <div className="flex-1">{children}</div>
+                {shouldShowHeader && <Header />}
+                <main className="flex-1">{children}</main>
                 <Analytics />
                 <Footer />
                 <BackToTop />
               </div>
-              {/* {process.env.NODE_ENV === 'development' && (
-                <ReactQueryDevtools initialIsOpen={false} />
-              )} */}
             </ReactQueryProvider>
           </SupabaseProvider>
         </ThemeProvider>

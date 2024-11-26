@@ -1,6 +1,16 @@
+/**
+ * Middleware module for handling authentication and route protection.
+ * For more details on authentication flow, see Authentication section in app-documentation.md
+ */
+
 import { NextResponse, type NextRequest } from 'next/server'
 import { createMiddlewareClient } from '@/utils/supabase'
 
+/**
+ * Middleware function that handles authentication state and route protection
+ * @param request - The incoming Next.js request object
+ * @returns NextResponse object with appropriate redirect or the original response
+ */
 export async function middleware(request: NextRequest) {
   try {
     const { supabase, response } = createMiddlewareClient(request)
@@ -29,12 +39,12 @@ export async function middleware(request: NextRequest) {
       return response
     }
 
-    // Redirect authenticated users away from auth pages
+    // Redirect authenticated users away from auth pages to prevent unnecessary re-authentication
     if (user && isPublicAuthRoute) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // Redirect unauthenticated users to login with return URL
+    // Redirect unauthenticated users to login while preserving their intended destination
     if (!user && isProtectedRoute) {
       const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirectTo', currentPath)
@@ -53,6 +63,11 @@ export async function middleware(request: NextRequest) {
   }
 }
 
+/**
+ * Configuration object for the middleware
+ * Defines which routes should be processed by this middleware
+ * Excludes Next.js internal routes and static assets
+ */
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico).*)',

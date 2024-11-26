@@ -1,5 +1,17 @@
 'use client'
 
+/**
+ * ActionForm Component
+ * Modal form for creating and editing actions.
+ * Includes real-time record search and validation.
+ *
+ * @component
+ * @param {Object} props
+ * @param {boolean} props.isOpen - Controls modal visibility
+ * @param {Function} props.onClose - Callback to close the modal
+ * @param {Function} props.onSubmit - Callback for form submission
+ */
+
 import { useState, useEffect } from 'react'
 import { useSupabase } from '@/providers/SupabaseProvider'
 import {
@@ -30,6 +42,10 @@ interface Record {
   file_name: string
 }
 
+/**
+ * Handles form state and submission for action creation/editing
+ * Includes record search functionality with debouncing
+ */
 export default function ActionForm({
   isOpen,
   onClose,
@@ -48,6 +64,10 @@ export default function ActionForm({
   const [isSearching, setIsSearching] = useState(false)
   const { supabase } = useSupabase()
 
+  /**
+   * Debounced record search effect
+   * Fetches matching records from Supabase based on search term
+   */
   useEffect(() => {
     const fetchRecords = async () => {
       if (!searchTerm) {

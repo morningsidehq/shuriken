@@ -1,4 +1,3 @@
-import Header from '@/components/Header'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
@@ -24,7 +23,6 @@ export default async function SearchPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
       <div className="container flex-1 py-8">
         <h1 className="mb-8 scroll-m-20 text-center text-4xl font-extrabold tracking-tight lg:text-5xl">
           Search Records

@@ -99,6 +99,18 @@ export default async function Header() {
                   </NavigationMenuList>
                 </NavigationMenu>
 
+                <NavigationMenu className="mr-2">
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link href="/analytics" legacyBehavior passHref>
+                        <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
+                          Analytics
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>

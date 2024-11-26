@@ -1,5 +1,24 @@
 'use client'
-// import { useState } from 'react'
+
+/**
+ * ActionFilters Component
+ * Sidebar component for filtering actions.
+ * Uses shadcn/ui Accordion for collapsible filter sections.
+ *
+ * Features:
+ * - Search functionality
+ * - Status filtering
+ * - Type filtering
+ * - Date range selection
+ * - Priority filtering
+ *
+ * @component
+ * @param {Object} props
+ * @param {Filters} props.filters - Current filter state
+ * @param {Function} props.setFilters - Filter state setter
+ * @param {Function} props.onApplyFilters - Callback when filters are applied
+ */
+
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -12,6 +31,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 
+/**
+ * Filter type definition
+ * @typedef {Object} Filters
+ * @property {string} type - Action type filter
+ * @property {string} status - Status filter
+ * @property {string} priority - Priority filter
+ * @property {string} assignedTo - Assignment filter
+ */
 type Filters = {
   type: string
   status: string

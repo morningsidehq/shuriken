@@ -1,3 +1,6 @@
+/**
+ * Type definition for JSON values that can be stored in Supabase
+ */
 export type Json =
   | string
   | number
@@ -6,9 +9,15 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+/**
+ * Main Database type containing all schemas, tables, views, functions and enums
+ */
 export type Database = {
   public: {
     Tables: {
+      /**
+       * Actions table for tracking tasks/operations
+       */
       actions: {
         Row: {
           action_name: string
@@ -66,6 +75,9 @@ export type Database = {
           },
         ]
       }
+      /**
+       * Agencies table for storing organization information
+       */
       agencies: {
         Row: {
           ansi: number | null
@@ -108,6 +120,9 @@ export type Database = {
         }
         Relationships: []
       }
+      /**
+       * Emails table for storing email messages and metadata
+       */
       emails: {
         Row: {
           attachment_count: number | null
@@ -150,6 +165,9 @@ export type Database = {
         }
         Relationships: []
       }
+      /**
+       * Press releases table for storing press release content and metadata
+       */
       press_releases: {
         Row: {
           agency_id: number | null
@@ -229,6 +247,9 @@ export type Database = {
           },
         ]
       }
+      /**
+       * User profiles table for storing user information
+       */
       profiles: {
         Row: {
           email: string | null
@@ -267,6 +288,9 @@ export type Database = {
           },
         ]
       }
+      /**
+       * Raw entities table for storing extracted entity information
+       */
       raw_entities: {
         Row: {
           alias_matches: string[] | null
@@ -312,6 +336,9 @@ export type Database = {
           },
         ]
       }
+      /**
+       * Record subtypes table for categorizing records
+       */
       record_sub_types: {
         Row: {
           description: string | null
@@ -341,6 +368,9 @@ export type Database = {
           },
         ]
       }
+      /**
+       * Record types table for main record categorization
+       */
       record_types: {
         Row: {
           description: string | null
@@ -362,6 +392,9 @@ export type Database = {
         }
         Relationships: []
       }
+      /**
+       * Main records table for storing document/file information
+       */
       records: {
         Row: {
           additional_text_urls: string[] | null
@@ -446,6 +479,9 @@ export type Database = {
           },
         ]
       }
+      /**
+       * User groups table for organizing users
+       */
       user_groups: {
         Row: {
           associated_agency: number | null
@@ -701,8 +737,14 @@ export type Database = {
   }
 }
 
+/**
+ * Helper type for accessing public schema
+ */
 type PublicSchema = Database[Extract<keyof Database, 'public'>]
 
+/**
+ * Helper type for accessing table rows
+ */
 export type Tables<
   PublicTableNameOrOptions extends
     | keyof (PublicSchema['Tables'] & PublicSchema['Views'])
@@ -728,6 +770,9 @@ export type Tables<
       : never
     : never
 
+/**
+ * Helper type for table insert operations
+ */
 export type TablesInsert<
   PublicTableNameOrOptions extends
     | keyof PublicSchema['Tables']
@@ -749,6 +794,9 @@ export type TablesInsert<
       : never
     : never
 
+/**
+ * Helper type for table update operations
+ */
 export type TablesUpdate<
   PublicTableNameOrOptions extends
     | keyof PublicSchema['Tables']
@@ -770,6 +818,9 @@ export type TablesUpdate<
       : never
     : never
 
+/**
+ * Helper type for accessing enums
+ */
 export type Enums<
   PublicEnumNameOrOptions extends
     | keyof PublicSchema['Enums']
@@ -783,6 +834,9 @@ export type Enums<
     ? PublicSchema['Enums'][PublicEnumNameOrOptions]
     : never
 
+/**
+ * Helper type for accessing composite types
+ */
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof PublicSchema['CompositeTypes']

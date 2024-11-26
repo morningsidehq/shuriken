@@ -1,5 +1,18 @@
 'use client'
 
+/**
+ * ActionsTable Component
+ * Displays a table of actions with sorting, filtering, and action buttons.
+ * Uses shadcn/ui components for consistent styling and accessibility.
+ *
+ * @component
+ * @param {Object} props
+ * @param {Action[]} props.actions - Array of action items to display
+ * @param {Function} props.onDelete - Callback function for delete action
+ * @param {Function} props.onEdit - Callback function for edit action
+ * @param {boolean} props.isLoading - Loading state flag
+ */
+
 import { Action } from '@/types/actions'
 import {
   Table,
@@ -26,6 +39,11 @@ export default function ActionsTable({
   onEdit,
   isLoading = false,
 }: ActionsTableProps) {
+  /**
+   * Helper function to determine badge variant based on status
+   * @param {string} status - Current status of the action
+   * @returns {string} Corresponding badge variant
+   */
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'completed':
@@ -39,6 +57,11 @@ export default function ActionsTable({
     }
   }
 
+  /**
+   * Helper function to determine badge variant based on priority
+   * @param {string} priority - Priority level of the action
+   * @returns {string} Corresponding badge variant
+   */
   const getPriorityVariant = (priority: string) => {
     switch (priority) {
       case 'high':

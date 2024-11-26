@@ -1,5 +1,19 @@
 'use client'
 
+/**
+ * ActionsProvider Component
+ * Main container component for the actions feature.
+ * Handles data fetching, state management, and CRUD operations for actions.
+ *
+ * Features:
+ * - Real-time data fetching from Supabase
+ * - Filtering capabilities
+ * - Action creation/deletion
+ * - Error handling and loading states
+ *
+ * @component
+ */
+
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -17,6 +31,11 @@ type Filters = {
   assignedTo: string
 }
 
+/**
+ * Fetches actions from Supabase and manages application state
+ * Includes error handling and loading states
+ * @returns {JSX.Element}
+ */
 export default function ActionsProvider() {
   const { supabase } = useSupabase()
   const [actions, setActions] = useState<Action[]>([])
@@ -33,6 +52,10 @@ export default function ActionsProvider() {
   })
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  /**
+   * Fetches actions from Supabase on component mount
+   * Filters by current user's session
+   */
   useEffect(() => {
     const fetchActions = async () => {
       try {
@@ -76,6 +99,10 @@ export default function ActionsProvider() {
     // Filter logic here
   }
 
+  /**
+   * Handles action deletion
+   * @param {number} id - ID of the action to delete
+   */
   const handleDelete = async (id: number) => {
     try {
       const { error } = await supabase.from('actions').delete().eq('id', id)
@@ -146,7 +173,9 @@ export default function ActionsProvider() {
       console.error('Error adding action:', error)
       setMessage({
         type: 'error',
-        text: `Failed to create action: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        text: `Failed to create action: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
       })
     } finally {
       setIsLoading(false)

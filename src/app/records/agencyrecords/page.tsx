@@ -1,6 +1,5 @@
 import { createServerClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
-import Header from '@/components/Header'
 import ObjectList from './ObjectList'
 import { cookies } from 'next/headers'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -63,7 +62,6 @@ export default async function AgencyRecordsPage() {
 
     return (
       <div className="flex min-h-screen flex-col">
-        <Header />
         <div className="container flex-1 py-8">
           <h1 className="mb-8 scroll-m-20 text-center text-4xl font-extrabold tracking-tight lg:text-5xl">
             Agency Records
@@ -93,7 +91,6 @@ export default async function AgencyRecordsPage() {
     console.error('Error in AgencyRecordsPage:', error)
     return (
       <div className="flex w-full flex-1 flex-col items-center gap-8">
-        <Header />
         <div className="container py-8 text-center">
           <div className="morningside-card">
             <h2 className="mb-2 text-xl font-semibold">

@@ -1,9 +1,27 @@
+/**
+ * Signup page component that provides user registration functionality.
+ * For more details on authentication flow, see Authentication section in app-documentation.md
+ */
+
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@/utils/supabase'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
+/**
+ * Signup component that renders a centered card containing the registration form
+ * @returns JSX.Element A card with signup form centered on the page
+ */
 export default async function Signup() {
+  /**
+   * Server action to handle user registration form submission
+   * @param formData - Form data containing email and password
+   * @returns Redirects to login page on success or signup page with error message on failure
+   */
   const handleSignUp = async (formData: FormData) => {
     'use server'
 
@@ -13,6 +31,7 @@ export default async function Signup() {
     const email = String(formData.get('email'))
     const password = String(formData.get('password'))
 
+    // Attempt to create new user account
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -29,65 +48,55 @@ export default async function Signup() {
   }
 
   return (
-    <div className="flex w-full flex-1 flex-col justify-center gap-2 px-8 sm:max-w-md">
-      <Link
-        href="/"
-        className="bg-btn-background hover:bg-btn-background-hover group absolute left-8 top-8 flex items-center rounded-md px-4 py-2 text-sm text-foreground no-underline"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1"
-        >
-          <polyline points="15 18 9 12 15 6" />
-        </svg>{' '}
-        Back
-      </Link>
+    // Container div that centers the signup card both vertically and horizontally
+    <div className="flex h-screen w-screen items-center justify-center">
+      {/* Card component with fixed width for signup form */}
+      <Card className="w-[400px]">
+        <CardHeader>
+          <CardTitle className="text-center">Create Account</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Registration form with email and password fields */}
+          <form className="grid gap-4" action={handleSignUp}>
+            {/* Email input field */}
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
 
-      <form
-        className="flex w-full flex-1 flex-col justify-center gap-2 text-foreground animate-in"
-        action={handleSignUp}
-      >
-        <label className="text-md" htmlFor="email">
-          Email
-        </label>
-        <input
-          className="mb-6 rounded-md border bg-inherit px-4 py-2"
-          name="email"
-          placeholder="you@example.com"
-          required
-        />
-        <label className="text-md" htmlFor="password">
-          Password
-        </label>
-        <input
-          className="mb-6 rounded-md border bg-inherit px-4 py-2"
-          type="password"
-          name="password"
-          placeholder="••••••••"
-          required
-        />
-        <button
-          type="submit"
-          className="mb-2 rounded-md bg-green-700 px-4 py-2 text-foreground"
-        >
-          Sign Up
-        </button>
+            {/* Password input field */}
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                required
+              />
+            </div>
 
-        <p className="text-center text-sm">
-          Already have an account?{' '}
-          <Link href="/login" className="text-green-700 hover:underline">
-            Sign in
-          </Link>
-        </p>
-      </form>
+            {/* Submit button */}
+            <Button type="submit" className="w-full">
+              Sign Up
+            </Button>
+
+            {/* Login link for existing users */}
+            <div className="text-center text-sm">
+              Already have an account?{' '}
+              <Link href="/login" className="text-primary hover:underline">
+                Sign in
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }
