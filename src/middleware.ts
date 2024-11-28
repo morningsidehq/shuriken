@@ -51,7 +51,6 @@ export async function middleware(request: NextRequest) {
       return rateLimitResponse
     }
 
-    // Existing authentication logic
     const { supabase, response } = createMiddlewareClient(request)
 
     const {
@@ -59,7 +58,7 @@ export async function middleware(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     // Define route configurations
-    const protectedRoutes = ['/dashboard', '/actions', '/records']
+    const protectedRoutes = ['/dashboard', '/actions', '/records', '/assistant']
     const publicAuthRoutes = ['/login', '/signup', '/reset-password']
     const currentPath = request.nextUrl.pathname
 
@@ -77,23 +76,23 @@ export async function middleware(request: NextRequest) {
       return response
     }
 
-    // Redirect authenticated users away from auth pages to prevent unnecessary re-authentication
+    // Redirect authenticated users away from auth pages
     if (user && isPublicAuthRoute) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // Redirect unauthenticated users to login while preserving their intended destination
+    // Redirect unauthenticated users to login
     if (!user && isProtectedRoute) {
       const redirectUrl = new URL('/login', request.url)
       redirectUrl.searchParams.set('redirectTo', currentPath)
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Add debugging for semantic search requests
-    if (request.nextUrl.pathname === '/api/semantic-search') {
-      console.log('Processing semantic search request in middleware')
-
-      // Add CORS headers for semantic search endpoint
+    // Add CORS headers for semantic search and embeddings endpoints
+    if (
+      request.nextUrl.pathname === '/api/semantic-search' ||
+      request.nextUrl.pathname === '/api/embeddings'
+    ) {
       const response = NextResponse.next()
       response.headers.set('Access-Control-Allow-Credentials', 'true')
       response.headers.set(
@@ -113,17 +112,13 @@ export async function middleware(request: NextRequest) {
     // Special handling for API routes
     if (request.nextUrl.pathname.startsWith('/api/')) {
       if (!user) {
-        console.log('API request unauthorized - no user found')
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
     }
 
     return response
   } catch (e) {
-    // Log the error but don't expose details in production
     console.error('Middleware error:', e)
-
-    // Safely redirect to login while preserving the intended destination
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
@@ -141,6 +136,7 @@ export const config = {
     '/dashboard/:path*',
     '/actions/:path*',
     '/records/:path*',
+    '/assistant/:path*',
     '/reset-password',
     '/api/:path*',
   ],
