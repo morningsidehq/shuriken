@@ -1,9 +1,14 @@
 # Constance Application Documentation
 
-Current Version: v0.4.6
+Current Version: v0.5.0
 
 ## Version History
 
+- v0.5.0: Added semantic search capabilities and AI assistant features
+  - Implemented semantic search using all-mpnet-base-v2 model
+  - Added document content preview in search results
+  - Integrated hybrid search functionality with Supabase vector storage
+  - Added similarity scoring and metadata display
 - v0.4.6: Added Entity analysis page.
 - v0.4.55: Added more detailed commenting throughout the codebase.
 - v0.4.5: Implemented shadcn/ui components across all major pages. Overhauled Records, Agency Records, and Intake pages.
@@ -157,6 +162,39 @@ API Routes:
   - Includes record metadata (ID, date, entity name)
   - Supports filtering by agency IDs
 
+#### 9. Semantic Search (`src/app/assistant/search/page.tsx`)
+- Advanced document search using embeddings and vector similarity
+- Real-time content preview capabilities
+
+Components:
+- **SemanticSearch**: Main search interface with hybrid search capabilities
+  - Uses all-mpnet-base-v2 model for text embeddings
+  - Implements similarity-based document matching
+  - Features document content preview
+  - Displays metadata and similarity scores
+  - Progressive loading of document content
+
+Features:
+- Hybrid search combining semantic and keyword matching
+- Real-time document preview
+- Similarity score display
+- File metadata information
+- Responsive search results display
+- Error handling and loading states
+
+API Routes:
+- **/api/embeddings**: Text embedding generation endpoint
+  - Uses @xenova/transformers for embedding generation
+  - Implements normalized vector outputs
+  - Includes debug information and error handling
+  - Optimized with ONNX runtime
+
+Database Functions:
+- **hybrid_search**: Supabase stored procedure
+  - Combines vector similarity search with text matching
+  - Configurable similarity thresholds
+  - Returns ranked results with metadata
+
 ### Shared Components
 
 #### Layout Components
@@ -248,3 +286,28 @@ Components:
   - Entity type
   - Record date
   - Record ID
+
+### Semantic Search
+
+#### Embeddings Endpoint (`/api/embeddings`)
+- Generates text embeddings using all-mpnet-base-v2 model
+- Input validation and preprocessing
+- Returns normalized 768-dimensional embeddings
+- Includes debugging information:
+  - Original magnitude
+  - Final magnitude
+  - Embedding dimensions
+  - Sample values
+
+#### Hybrid Search Function
+- Implemented as a Supabase stored procedure
+- Parameters:
+  - query_text: Text to search for
+  - query_embedding: Vector representation
+  - match_count: Number of results to return
+  - similarity_threshold: Minimum similarity score
+- Returns:
+  - Document metadata
+  - Similarity scores
+  - File paths
+  - Content preview capabilities

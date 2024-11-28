@@ -39,3 +39,11 @@ yarn-error.log*
 
 # swc
 .swc
+
+# Environment variables
+.env*
+!.env.example
+
+# OpenAI API key related
+**/openai-key.json
+**/openai.config.json

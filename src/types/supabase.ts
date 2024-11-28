@@ -508,6 +508,44 @@ export type Database = {
           },
         ]
       }
+      document_embeddings: {
+        Row: {
+          id: string
+          embedding: number[]
+          content?: string
+          page_number?: number
+          record_id?: string
+          context?: string
+          ai_summary?: string
+        }
+        Insert: {
+          id?: string
+          embedding: number[]
+          content?: string
+          page_number?: number
+          record_id?: string
+          context?: string
+          ai_summary?: string
+        }
+        Update: {
+          id?: string
+          embedding?: number[]
+          content?: string
+          page_number?: number
+          record_id?: string
+          context?: string
+          ai_summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'document_embeddings_record_id_fkey'
+            columns: ['record_id']
+            isOneToOne: false
+            referencedRelation: 'records'
+            referencedColumns: ['nanoid']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

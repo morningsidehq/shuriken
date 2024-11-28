@@ -16,6 +16,7 @@ import {
   FaGlobe,
   FaBuilding,
   FaChartBar,
+  FaRobot,
 } from 'react-icons/fa'
 import Image from 'next/image'
 
@@ -153,6 +154,23 @@ export default async function DashboardPage() {
             <FaChartBar className="mb-2 h-6 w-6" />
             <h3 className="text-sm font-semibold">Analytics</h3>
           </Link>
+
+          {/* Assistant card with submenu */}
+          <div className="group relative h-[120px] w-[200px]">
+            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-all duration-300 group-hover:opacity-0">
+              <FaRobot className="mb-2 h-6 w-6" />
+              <h3 className="text-sm font-semibold">Assistant</h3>
+            </div>
+            <div className="absolute inset-0 flex gap-1 opacity-0 transition-all duration-300 group-hover:opacity-100">
+              <Link
+                href="/assistant/search"
+                className="flex w-full flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <FaSearch className="mb-2 h-6 w-6" />
+                <h3 className="text-sm font-semibold">Search</h3>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

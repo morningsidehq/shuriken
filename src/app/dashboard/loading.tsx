@@ -7,7 +7,7 @@ export default function DashboardLoading() {
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {[...Array(5)].map((_, i) => (
+        {[...Array(6)].map((_, i) => (
           <div
             key={i}
             className="flex h-32 animate-pulse flex-col items-center justify-center rounded-lg border bg-muted"
