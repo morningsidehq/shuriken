@@ -1,9 +1,15 @@
 # Constance Application Documentation
 
-Current Version: v0.5.1
+Current Version: v0.5.4
 
 ## Version History
 
+- v0.5.4: Enhanced semantic search functionality
+  - Added multi-tab search interface for parallel searches
+  - Implemented search analysis panel with bot interface
+  - Added common terms highlighting and one-click search
+  - Enhanced PDF viewer with lightbox modal
+  - Improved document content preview and analysis
 - v0.5.1: Fixed issue with semantic search causing build failure.
 - v0.5.0: Added semantic search capabilities and AI assistant features
   - Implemented semantic search using all-mpnet-base-v2 model
@@ -166,6 +172,7 @@ API Routes:
 #### 9. Semantic Search (`src/app/assistant/search/page.tsx`)
 - Advanced document search using embeddings and vector similarity
 - Real-time content preview capabilities
+- Multi-tab search interface for parallel searches
 
 Components:
 - **SemanticSearch**: Main search interface with hybrid search capabilities
@@ -174,6 +181,10 @@ Components:
   - Features document content preview
   - Displays metadata and similarity scores
   - Progressive loading of document content
+  - Multi-tab search functionality:
+    - Dynamic tab creation and removal
+    - Tab titles reflect search queries
+    - Independent search contexts per tab
 
 Features:
 - Hybrid search combining semantic and keyword matching
@@ -182,6 +193,18 @@ Features:
 - File metadata information
 - Responsive search results display
 - Error handling and loading states
+- Search Analysis Panel:
+  - Bot-assisted analysis presentation
+  - Most common terms identification with:
+    - Term highlighting in results
+    - One-click new search capability
+  - Document clustering by similarity
+  - File size and similarity statistics
+- PDF Document Viewer:
+  - Lightbox-style modal display
+  - Direct access to original PDF documents
+  - Clean, minimal interface
+  - Automatic resource cleanup
 
 API Routes:
 - **/api/embeddings**: Text embedding generation endpoint
@@ -195,6 +218,7 @@ Database Functions:
   - Combines vector similarity search with text matching
   - Configurable similarity thresholds
   - Returns ranked results with metadata
+  - Supports content preview extraction
 
 ### Shared Components
 

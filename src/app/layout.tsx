@@ -38,7 +38,7 @@ export default async function RootLayout({
   } = await supabase.auth.getSession()
 
   // Get the current pathname
-  const headersList = headers()
+  const headersList = await headers()
   const pathname = headersList.get('x-pathname') || '/'
 
   // Define paths where header should be hidden
