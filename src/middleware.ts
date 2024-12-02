@@ -16,7 +16,10 @@ const rateLimit = new Map()
  */
 function checkRateLimit(request: NextRequest): NextResponse | null {
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    const ip = request.ip ?? 'anonymous'
+    const ip =
+      request.headers.get('x-real-ip') ||
+      request.headers.get('x-forwarded-for') ||
+      'anonymous'
     const now = Date.now()
     const timeframe = 60 * 1000 // 1 minute
     const limit = 20 // requests per timeframe
@@ -44,6 +47,11 @@ function checkRateLimit(request: NextRequest): NextResponse | null {
  * @returns NextResponse object with appropriate redirect or the original response
  */
 export async function middleware(request: NextRequest) {
+  // Define route configurations at the start
+  const protectedRoutes = ['/dashboard', '/actions', '/records', '/assistant']
+  const publicAuthRoutes = ['/login', '/signup', '/reset-password']
+  const currentPath = request.nextUrl.pathname
+
   try {
     // Check rate limiting first
     const rateLimitResponse = checkRateLimit(request)
@@ -53,75 +61,91 @@ export async function middleware(request: NextRequest) {
 
     const { supabase, response } = createMiddlewareClient(request)
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    try {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser()
 
-    // Define route configurations
-    const protectedRoutes = ['/dashboard', '/actions', '/records', '/assistant']
-    const publicAuthRoutes = ['/login', '/signup', '/reset-password']
-    const currentPath = request.nextUrl.pathname
+      if (error?.status === 400 && error?.code === 'session_expired') {
+        // Clear the expired session
+        await supabase.auth.signOut()
 
-    // Check route types
-    const isProtectedRoute = protectedRoutes.some((route) =>
-      currentPath.startsWith(route),
-    )
-    const isPublicAuthRoute = publicAuthRoutes.some((route) =>
-      currentPath.startsWith(route),
-    )
-    const isLogoutPage = currentPath === '/logout'
+        // Only redirect to login if trying to access protected routes
+        const isProtectedRoute = protectedRoutes.some((route) =>
+          request.nextUrl.pathname.startsWith(route),
+        )
 
-    // Special handling for logout page - allow the logout process to complete
-    if (isLogoutPage) {
-      return response
-    }
+        if (isProtectedRoute) {
+          const redirectUrl = new URL('/login', request.url)
+          redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+          return NextResponse.redirect(redirectUrl)
+        }
+      }
 
-    // Redirect authenticated users away from auth pages
-    if (user && isPublicAuthRoute) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-
-    // Redirect unauthenticated users to login
-    if (!user && isProtectedRoute) {
-      const redirectUrl = new URL('/login', request.url)
-      redirectUrl.searchParams.set('redirectTo', currentPath)
-      return NextResponse.redirect(redirectUrl)
-    }
-
-    // Add CORS headers for semantic search and embeddings endpoints
-    if (
-      request.nextUrl.pathname === '/api/semantic-search' ||
-      request.nextUrl.pathname === '/api/embeddings'
-    ) {
-      const response = NextResponse.next()
-      response.headers.set('Access-Control-Allow-Credentials', 'true')
-      response.headers.set(
-        'Access-Control-Allow-Origin',
-        request.headers.get('origin') || '*',
+      // Check route types
+      const isProtectedRoute = protectedRoutes.some((route) =>
+        currentPath.startsWith(route),
       )
-      response.headers.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+      const isPublicAuthRoute = publicAuthRoutes.some((route) =>
+        currentPath.startsWith(route),
+      )
+      const isLogoutPage = currentPath === '/logout'
 
-      // Handle preflight
-      if (request.method === 'OPTIONS') {
+      // Special handling for logout page - allow the logout process to complete
+      if (isLogoutPage) {
         return response
       }
 
-      return response
-    }
-
-    // Special handling for API routes
-    if (request.nextUrl.pathname.startsWith('/api/')) {
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      // Redirect authenticated users away from auth pages
+      if (user && isPublicAuthRoute) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
       }
+
+      // Redirect unauthenticated users to login
+      if (!user && isProtectedRoute) {
+        const redirectUrl = new URL('/login', request.url)
+        redirectUrl.searchParams.set('redirectTo', currentPath)
+        return NextResponse.redirect(redirectUrl)
+      }
+
+      // Add CORS headers for semantic search and embeddings endpoints
+      if (
+        request.nextUrl.pathname === '/api/semantic-search' ||
+        request.nextUrl.pathname === '/api/embeddings'
+      ) {
+        const response = NextResponse.next()
+        response.headers.set('Access-Control-Allow-Credentials', 'true')
+        response.headers.set(
+          'Access-Control-Allow-Origin',
+          request.headers.get('origin') || '*',
+        )
+        response.headers.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+
+        // Handle preflight
+        if (request.method === 'OPTIONS') {
+          return response
+        }
+
+        return response
+      }
+
+      // Special handling for API routes
+      if (request.nextUrl.pathname.startsWith('/api/')) {
+        if (!user) {
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+      }
+    } catch (error) {
+      console.error('Auth error:', error)
+      // Handle other errors gracefully
+      return response
     }
 
     return response
   } catch (e) {
     console.error('Middleware error:', e)
-    const redirectUrl = new URL('/login', request.url)
-    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+    return NextResponse.next()
   }
 }
 

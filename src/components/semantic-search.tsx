@@ -236,16 +236,20 @@ const SummaryPanel = ({
                         variant="outline"
                         size="sm"
                         className="h-7"
-                        onClick={() => {
+                        onClick={async () => {
                           const newId = (
                             Math.max(...tabs.map((t) => parseInt(t.id))) + 1
                           ).toString()
+                          // Create new tab with the word
                           setTabs((prev) => [
                             ...prev,
                             { id: newId, query: word, results: [] },
                           ])
                           setActiveTab(newId)
-                          handleSearch(newId)
+                          // Wait for state updates to complete
+                          await new Promise((resolve) => setTimeout(resolve, 0))
+                          // Then trigger the search
+                          await handleSearch(newId)
                           onClose()
                         }}
                       >
@@ -356,7 +360,11 @@ export function SemanticSearch() {
 
       const embeddingResponse = await fetch('/api/embeddings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
         body: JSON.stringify({ text: currentTab.query }),
       })
 
@@ -365,6 +373,10 @@ export function SemanticSearch() {
       }
 
       const { embedding } = await embeddingResponse.json()
+
+      if (!embedding || !Array.isArray(embedding)) {
+        throw new Error('Invalid embedding response format')
+      }
 
       const formattedEmbedding = Array.from(embedding).map((n) =>
         typeof n === 'string' ? parseFloat(n) : n,
@@ -383,23 +395,40 @@ export function SemanticSearch() {
         similarity_threshold: 0.0001,
       })) as { data: SearchResult[] | null; error: any }
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase search error:', error)
+        throw error
+      }
 
-      // Fetch text content for each result
       const resultsWithContent = await Promise.all(
         (data || []).map(async (result: SearchResult) => {
-          const content = await fetchTextContent(result)
-          return { ...result, content }
+          try {
+            const content = await Promise.race([
+              fetchTextContent(result),
+              new Promise<string | undefined>((_, reject) =>
+                setTimeout(
+                  () => reject(new Error('Content fetch timeout')),
+                  10000,
+                ),
+              ),
+            ])
+            return { ...result, content } as SearchResult
+          } catch (error) {
+            console.error('Content fetch error:', error)
+            return { ...result, content: 'Content unavailable' } as SearchResult
+          }
         }),
       )
 
-      setTabs((prev) =>
-        prev.map((tab) =>
-          tab.id === tabId ? { ...tab, results: resultsWithContent } : tab,
-        ),
+      setTabs(
+        (prev) =>
+          prev.map((tab) =>
+            tab.id === tabId ? { ...tab, results: resultsWithContent } : tab,
+          ) as SearchTab[],
       )
     } catch (error) {
       console.error('Search error:', error)
+      setLoading(false)
     } finally {
       setLoading(false)
     }

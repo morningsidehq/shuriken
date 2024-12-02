@@ -1,9 +1,10 @@
 # Constance Application Documentation
 
-Current Version: v0.5.4
+Current Version: v0.5.5
 
 ## Version History
 
+- v0.5.5: Fixed issue with cookie handling in middleware, user session handling, and semantic search.
 - v0.5.4: Enhanced semantic search functionality
   - Added multi-tab search interface for parallel searches
   - Implemented search analysis panel with bot interface
