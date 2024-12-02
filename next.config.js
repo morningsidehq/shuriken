@@ -25,8 +25,12 @@ const nextConfig = {
       logLevel: 'error',
       logDetail: true,
     },
-    serverActions: true,
-    serverComponentsExternalPackages: [],
+    esmExternals: 'loose',
+    serverComponentsExternalPackages: [
+      'styled-jsx',
+      '@babel/core',
+      'onnxruntime-node',
+    ],
   },
 
   // Image optimization configuration
@@ -49,21 +53,36 @@ const nextConfig = {
     port: process.env.PORT || 8080,
   },
 
-  // Webpack configuration for path aliases
+  // Webpack configuration for path aliases and optimizations
   webpack: (config, { isServer }) => {
+    // Add path aliases
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.join(__dirname, 'src'),
+    }
+
+    // Add resolver fallbacks for node modules
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      path: false,
+      crypto: false,
+      stream: false,
+      http: false,
+      https: false,
+      zlib: false,
     }
 
     // Prevent server-side webpack from attempting to parse binary files
     if (isServer) {
       config.externals.push({
         'onnxruntime-node': 'commonjs onnxruntime-node',
+        'styled-jsx': 'commonjs styled-jsx',
+        '@babel/core': 'commonjs @babel/core',
       })
     }
 
-    // Add a rule to handle .node binary files
+    // Add rules to handle binary files
     config.module.rules.push({
       test: /\.node$/,
       use: 'node-loader',
@@ -82,14 +101,39 @@ const nextConfig = {
     return `build${timestamp}`
   },
 
+  // TypeScript and ESLint configurations for production
   typescript: {
-    // During deployment, we can be more lenient
     ignoreBuildErrors: true,
   },
 
   eslint: {
-    // During deployment, we can be more lenient
     ignoreDuringBuilds: true,
+  },
+
+  // Add support for MDX pages
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+
+  // Configure headers for security
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+    ]
   },
 }
 

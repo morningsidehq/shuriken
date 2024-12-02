@@ -97,7 +97,7 @@ export function SemanticSearch() {
       console.log('Search results:', data)
       setResults(data || [])
     } catch (error) {
-      console.error('Full error:', error)
+      console.error('Search error:', error)
     } finally {
       setLoading(false)
     }
