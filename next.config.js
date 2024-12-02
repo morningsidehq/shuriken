@@ -13,24 +13,25 @@ const withMDX = require('@next/mdx')({
     rehypePlugins: [],
   },
 })
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
+
   // Output as standalone build for production deployment
   output: 'standalone',
 
-  // Configure experimental features
+  // Enable build caching for faster rebuilds
   experimental: {
-    turbotrace: {
-      logLevel: 'error',
-      logDetail: true,
-    },
-    esmExternals: 'loose',
     serverComponentsExternalPackages: [
       'styled-jsx',
       '@babel/core',
       'onnxruntime-node',
+      '@xenova/transformers',
     ],
+    turbotrace: {
+      enabled: true,
+    },
   },
 
   // Image optimization configuration
@@ -89,6 +90,9 @@ const nextConfig = {
       type: 'javascript/auto',
     })
 
+    // Enable build caching
+    config.cache = true
+
     return config
   },
 
@@ -136,6 +140,8 @@ const nextConfig = {
     ]
   },
 }
+
+module.exports = nextConfig
 
 // Apply MDX configuration
 const config = withMDX(nextConfig)

@@ -1,9 +1,10 @@
 # Constance Application Documentation
 
-Current Version: v0.5.0
+Current Version: v0.5.1
 
 ## Version History
 
+- v0.5.1: Fixed issue with semantic search causing build failure.
 - v0.5.0: Added semantic search capabilities and AI assistant features
   - Implemented semantic search using all-mpnet-base-v2 model
   - Added document content preview in search results
