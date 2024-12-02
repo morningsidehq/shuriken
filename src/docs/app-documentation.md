@@ -1,9 +1,10 @@
 # Constance Application Documentation
 
-Current Version: v0.5.5
+Current Version: v0.5.6
 
 ## Version History
 
+- v0.5.6: Added user group to document processing.
 - v0.5.5: Fixed issue with cookie handling in middleware, user session handling, and semantic search.
 - v0.5.4: Enhanced semantic search functionality
   - Added multi-tab search interface for parallel searches

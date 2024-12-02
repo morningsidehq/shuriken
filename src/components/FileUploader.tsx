@@ -6,12 +6,28 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
 import { Upload } from 'lucide-react'
+import { processDocument } from '@/utils/documentProcessing'
 
 interface FileUploaderProps {
   userGroup: string
   className?: string
   onFileSelect?: (file: File | null) => void
   showUploadButton?: boolean
+}
+
+const API_BASE_URL = 'http://143.198.22.202:8000'
+const API_ENDPOINTS = {
+  classify: '/api/v1/blue_ribband',
+  chunkText: '/api/v1/chunk_text',
+  uploadRecord: '/api/v1/upload_record',
+}
+
+type APIErrorResponse = {
+  detail?: string
+  error?: string
+  message?: string
+  code?: string
+  status?: number
 }
 
 export default function FileUploader({
@@ -24,6 +40,7 @@ export default function FileUploader({
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [processingStep, setProcessingStep] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createBrowserClient()
 
@@ -38,7 +55,7 @@ export default function FileUploader({
         return
       }
 
-      const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+      const MAX_FILE_SIZE = 10 * 1024 * 1024
       if (file.size > MAX_FILE_SIZE) {
         setError('File size must be less than 10MB')
         e.target.value = ''
@@ -69,7 +86,7 @@ export default function FileUploader({
         return
       }
 
-      const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+      const MAX_FILE_SIZE = 10 * 1024 * 1024
       if (file.size > MAX_FILE_SIZE) {
         setError('File size must be less than 10MB')
         return
@@ -78,6 +95,12 @@ export default function FileUploader({
       setSelectedFile(file)
       onFileSelect?.(file)
     }
+  }
+
+  const generateFilePath = (fileName: string, userGroup: string) => {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const sanitizedFileName = fileName.replace('.pdf', '')
+    return `${userGroup}/${sanitizedFileName}_${timestamp}`
   }
 
   const handleUpload = async () => {
@@ -91,43 +114,14 @@ export default function FileUploader({
       setError(null)
       setUploadProgress(0)
 
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession()
+      const baseFilePath = generateFilePath(selectedFile.name, userGroup)
+      await processDocument(selectedFile, baseFilePath)
 
-      if (sessionError || !session?.user) {
-        throw new Error(
-          sessionError?.message || 'Please log in to upload files',
-        )
-      }
-
-      // Create unique filename
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-      const originalName = selectedFile.name.replace('.pdf', '')
-      const fileName = `${originalName}_${timestamp}.pdf`
-      const filePath = `${userGroup}/${fileName}`
-
-      // Upload with progress tracking
-      const { error } = await supabase.storage
-        .from('user_objects')
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: false,
-          contentType: 'application/pdf',
-        })
-
-      if (error) throw error
-
-      // Reset form after successful upload
-      setSelectedFile(null)
-      if (fileInputRef.current) fileInputRef.current.value = ''
       setUploadProgress(100)
-
-      // Optional: Add success message or callback here
+      setProcessingStep('Upload complete!')
     } catch (error: any) {
-      console.error('Upload error:', error)
       setError(error.message || 'Failed to upload file')
+      setProcessingStep('Upload failed')
     } finally {
       setUploading(false)
     }
@@ -163,11 +157,18 @@ export default function FileUploader({
       />
 
       {selectedFile && (
-        <div className="flex items-center gap-2">
-          <div className="flex-1 rounded border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500">
-            {selectedFile.name}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 rounded border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500">
+              {selectedFile.name}
+            </div>
           </div>
-          {uploading && <Progress value={uploadProgress} className="w-full" />}
+          {uploading && (
+            <>
+              <Progress value={uploadProgress} className="w-full" />
+              <p className="text-sm text-gray-600">{processingStep}</p>
+            </>
+          )}
         </div>
       )}
 

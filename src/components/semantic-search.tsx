@@ -18,16 +18,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 type SearchResult = {
   id: string
   file_path: string
-  similarity: number
-  metadata: {
-    size?: number
-    mimetype?: string
-  }
-  debug_info: {
-    similarity_score: number
-    query_text: string
-  }
   content?: string
+  similarity: number
+  page_number?: number
   showFullContent?: boolean
 }
 
@@ -92,35 +85,12 @@ const findCommonWords = (
     .slice(0, 10) // Top 10 words
 }
 
-const clusterDocuments = (
-  results: SearchResult[],
-): { cluster: number; docs: SearchResult[] }[] => {
-  const similarityThreshold = 0.7 // Adjust as needed
-  const clusters: SearchResult[][] = []
-
-  results.forEach((doc) => {
-    let addedToCluster = false
-
-    for (const cluster of clusters) {
-      const avgSimilarity =
-        cluster.reduce(
-          (sum, clusterDoc) => sum + clusterDoc.similarity * doc.similarity,
-          0,
-        ) / cluster.length
-
-      if (avgSimilarity > similarityThreshold) {
-        cluster.push(doc)
-        addedToCluster = true
-        break
-      }
-    }
-
-    if (!addedToCluster) {
-      clusters.push([doc])
-    }
-  })
-
-  return clusters.map((docs, i) => ({ cluster: i + 1, docs }))
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
 }
 
 const generateResultsSummary = (results: SearchResult[]) => {
@@ -128,30 +98,45 @@ const generateResultsSummary = (results: SearchResult[]) => {
 
   const avgSimilarity =
     results.reduce((sum, r) => sum + r.similarity, 0) / results.length
-  const fileTypes = new Set(results.map((r) => r.metadata.mimetype))
-  const totalSize = results.reduce((sum, r) => sum + (r.metadata.size || 0), 0)
+
+  // Calculate total size from the text content
+  const totalSize = results.reduce(
+    (sum, r) => sum + (r.content?.length || 0),
+    0,
+  )
+
+  // Find common words
   const commonWords = findCommonWords(results)
-  const clusters = clusterDocuments(results)
+
+  // Group documents by folder
+  const clusters = results.reduce(
+    (acc, doc) => {
+      const folder = doc.file_path.split('/')[1] || 'ungrouped'
+      if (!acc[folder]) acc[folder] = []
+      acc[folder].push(doc)
+      return acc
+    },
+    {} as Record<string, SearchResult[]>,
+  )
 
   return {
     count: results.length,
     avgSimilarity,
-    fileTypes: Array.from(fileTypes),
     totalSize,
-    paths: results.map((r) => r.file_path),
     commonWords,
-    clusters,
+    clusters: Object.entries(clusters).map(([name, docs]) => ({
+      cluster: name,
+      docs,
+    })),
   }
 }
 
-type SummaryPanelProps = {
+interface SummaryPanelProps {
   results: SearchResult[]
   isOpen: boolean
   onClose: () => void
   onTermClick: (term: string) => void
-  setQuery: (tabId: string, query: string) => void
   handleSearch: (tabId: string) => Promise<void>
-  activeTabId: string
   setTabs: React.Dispatch<React.SetStateAction<SearchTab[]>>
   setActiveTab: (id: string) => void
   tabs: SearchTab[]
@@ -162,9 +147,7 @@ const SummaryPanel = ({
   isOpen,
   onClose,
   onTermClick,
-  setQuery,
   handleSearch,
-  activeTabId,
   setTabs,
   setActiveTab,
   tabs,
@@ -182,7 +165,7 @@ const SummaryPanel = ({
       )}
       <div
         className={cn(
-          'fixed right-0 top-0 z-50 h-full w-96 transform border-l bg-background/95 shadow-lg transition-transform duration-300 ease-in-out',
+          'fixed right-0 top-0 z-50 h-full w-96 transform border-l border-border bg-background/95 shadow-lg backdrop-blur transition-transform duration-300 ease-in-out supports-[backdrop-filter]:bg-background/60',
           isOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
@@ -196,7 +179,7 @@ const SummaryPanel = ({
               <p className="text-sm leading-relaxed text-muted-foreground">
                 I found {summary.count} matching documents with an average
                 similarity of {(summary.avgSimilarity * 100).toFixed(2)}%. The
-                total size is {formatFileSize(summary.totalSize)}.
+                total content size is {formatFileSize(summary.totalSize)}.
               </p>
             </div>
             <Button
@@ -212,13 +195,13 @@ const SummaryPanel = ({
           <div className="space-y-6">
             <div>
               <h4 className="mb-2 text-sm font-medium">
-                Here are the Most Common Terms I found in the files:
+                Most Common Terms in Results:
               </h4>
               <div className="space-y-2">
                 {summary.commonWords.map(({ word, count }) => (
                   <div
                     key={word}
-                    className="flex items-center justify-between rounded-lg bg-muted/50 p-2"
+                    className="flex items-center justify-between rounded-md border border-border bg-background/50 p-2"
                   >
                     <span className="text-sm">
                       {word} ({count})
@@ -240,15 +223,12 @@ const SummaryPanel = ({
                           const newId = (
                             Math.max(...tabs.map((t) => parseInt(t.id))) + 1
                           ).toString()
-                          // Create new tab with the word
                           setTabs((prev) => [
                             ...prev,
                             { id: newId, query: word, results: [] },
                           ])
                           setActiveTab(newId)
-                          // Wait for state updates to complete
                           await new Promise((resolve) => setTimeout(resolve, 0))
-                          // Then trigger the search
                           await handleSearch(newId)
                           onClose()
                         }}
@@ -267,7 +247,7 @@ const SummaryPanel = ({
                 {summary.clusters.map(({ cluster, docs }) => (
                   <div key={cluster} className="text-sm">
                     <p className="text-muted-foreground">
-                      Group {cluster} contains {docs.length} related document
+                      {cluster} contains {docs.length} related document
                       {docs.length > 1 ? 's' : ''}:
                     </p>
                     <ul className="ml-4 mt-1 list-disc space-y-1 text-xs">
@@ -286,36 +266,55 @@ const SummaryPanel = ({
   )
 }
 
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
-}
-
 type SearchTab = {
   id: string
   query: string
   results: SearchResult[]
 }
 
-export function SemanticSearch() {
+interface SemanticSearchProps {
+  userGroup: string
+  userId: string
+  accessToken: string
+}
+
+export function SemanticSearch({
+  userGroup,
+  userId,
+  accessToken,
+}: SemanticSearchProps) {
   const [tabs, setTabs] = useState<SearchTab[]>([
     { id: '1', query: '', results: [] },
   ])
   const [activeTab, setActiveTab] = useState('1')
   const [loading, setLoading] = useState(false)
-  const supabase = createClientComponentClient()
   const [showSummary, setShowSummary] = useState(false)
   const [highlightedTerm, setHighlightedTerm] = useState<string>('')
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
 
+  // Initialize Supabase client with auth context
+  const supabase = createClientComponentClient({
+    options: {
+      global: {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    },
+  })
+
   const fetchTextContent = async (result: SearchResult) => {
     try {
+      // Extract the user group and document folder from the file path
+      const pathParts = result.file_path.split('/')
+      const userGroup = pathParts[0]
+      const documentFolder = pathParts[1]
+      const pageNumber = result.page_number || 1 // Fallback to page 1 if not specified
+
+      // Fetch from user_objects bucket, targeting the specific page.txt
       const { data, error } = await supabase.storage
-        .from('pdfs')
-        .download(result.file_path)
+        .from('user_objects')
+        .download(`${userGroup}/${documentFolder}/pages/${pageNumber}/page.txt`)
 
       if (error) throw error
 
@@ -328,12 +327,9 @@ export function SemanticSearch() {
   }
 
   const getOriginalPdfPath = (pagePath: string): string => {
-    const parts = pagePath.split('/')
-    if (parts.length < 5) return pagePath
-
-    const townName = parts[0]
-    const folderNumber = parts[1]
-    return `${townName}/${folderNumber}/original.pdf`
+    const pathParts = pagePath.split('/')
+    // Return path to original.pdf in the document folder
+    return `${pathParts[0]}/${pathParts[1]}/original.pdf`
   }
 
   const addNewTab = () => {
@@ -355,15 +351,28 @@ export function SemanticSearch() {
     const currentTab = tabs.find((t) => t.id === tabId)
     if (!currentTab?.query.trim()) return
 
+    if (!userGroup) {
+      console.error('User group is not defined')
+      return
+    }
+
     try {
       setLoading(true)
+
+      // Format userGroup: remove spaces and ensure it exists
+      const formattedUserGroup = userGroup.replace(/\s+/g, '')
+      console.log('Search params:', {
+        query: currentTab.query,
+        userGroup: formattedUserGroup,
+        userId,
+        hasAccessToken: !!accessToken,
+      })
 
       const embeddingResponse = await fetch('/api/embeddings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          Pragma: 'no-cache',
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ text: currentTab.query }),
       })
@@ -374,32 +383,20 @@ export function SemanticSearch() {
 
       const { embedding } = await embeddingResponse.json()
 
-      if (!embedding || !Array.isArray(embedding)) {
-        throw new Error('Invalid embedding response format')
-      }
-
-      const formattedEmbedding = Array.from(embedding).map((n) =>
-        typeof n === 'string' ? parseFloat(n) : n,
-      )
-
-      if (formattedEmbedding.length !== 768) {
-        throw new Error(
-          `Invalid embedding length: ${formattedEmbedding.length}`,
-        )
-      }
-
-      const { data, error } = (await supabase.rpc('hybrid_search', {
+      const { data, error } = await supabase.rpc('hybrid_search_scoped', {
         query_text: currentTab.query,
-        query_embedding: formattedEmbedding,
+        query_embedding: embedding,
+        user_group_filter: formattedUserGroup,
         match_count: 5,
         similarity_threshold: 0.0001,
-      })) as { data: SearchResult[] | null; error: any }
+      })
 
       if (error) {
         console.error('Supabase search error:', error)
         throw error
       }
 
+      // Fetch content for each result
       const resultsWithContent = await Promise.all(
         (data || []).map(async (result: SearchResult) => {
           try {
@@ -420,15 +417,13 @@ export function SemanticSearch() {
         }),
       )
 
-      setTabs(
-        (prev) =>
-          prev.map((tab) =>
-            tab.id === tabId ? { ...tab, results: resultsWithContent } : tab,
-          ) as SearchTab[],
+      setTabs((prev) =>
+        prev.map((tab) =>
+          tab.id === tabId ? { ...tab, results: resultsWithContent } : tab,
+        ),
       )
     } catch (error) {
       console.error('Search error:', error)
-      setLoading(false)
     } finally {
       setLoading(false)
     }
@@ -437,21 +432,40 @@ export function SemanticSearch() {
   const getContextualSnippet = (
     text: string,
     query: string,
-    contextLength: number = 100,
+    contextLength: number = 200,
   ) => {
-    const index = text.toLowerCase().indexOf(query.toLowerCase())
-    if (index === -1) return text.slice(0, contextLength)
+    if (!text) return ''
 
-    const start = Math.max(0, index - contextLength)
-    const end = Math.min(text.length, index + query.length + contextLength)
+    // Split text into sentences
+    const sentences = text.split(/[.!?]+\s+/)
 
-    return text.slice(start, end)
-  }
+    // Score each sentence based on semantic similarity to query
+    // For now, we'll use basic keyword matching, but this could be enhanced
+    // with another embedding comparison if needed
+    const scoredSentences = sentences.map((sentence) => ({
+      text: sentence,
+      score: query
+        .toLowerCase()
+        .split(' ')
+        .reduce((score, word) => {
+          return score + (sentence.toLowerCase().includes(word) ? 1 : 0)
+        }, 0),
+    }))
 
-  const updateTabQuery = (tabId: string, newQuery: string) => {
-    setTabs((prev) =>
-      prev.map((t) => (t.id === tabId ? { ...t, query: newQuery } : t)),
-    )
+    // Sort by score and take the top sentences
+    const topSentences = scoredSentences
+      .filter((s) => s.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map((s) => s.text)
+
+    // If no matches found, return the first part of the text
+    if (topSentences.length === 0) {
+      return text.slice(0, contextLength)
+    }
+
+    // Join the relevant sentences
+    return topSentences.join('. ') + '.'
   }
 
   return (
@@ -539,9 +553,7 @@ export function SemanticSearch() {
                       setHighlightedTerm(term)
                       setShowSummary(false)
                     }}
-                    setQuery={updateTabQuery}
                     handleSearch={handleSearch}
-                    activeTabId={activeTab}
                     setTabs={setTabs}
                     setActiveTab={setActiveTab}
                     tabs={tabs}
@@ -551,7 +563,10 @@ export function SemanticSearch() {
 
               <div className="mt-4 space-y-4">
                 {tab.results.map((result) => (
-                  <Card key={result.id} className="p-4">
+                  <Card
+                    key={result.id}
+                    className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                  >
                     <div className="flex justify-between">
                       <p className="text-sm font-medium">{result.file_path}</p>
                       <p className="text-sm font-medium">
@@ -561,7 +576,7 @@ export function SemanticSearch() {
                     {result.content && (
                       <div className="mt-2 text-sm">
                         <p className="font-medium text-muted-foreground">
-                          Matching text:
+                          Most relevant text:
                         </p>
                         <p className="mt-1 rounded bg-muted p-2">
                           <Highlight
@@ -574,13 +589,14 @@ export function SemanticSearch() {
                                   )
                             }
                             query={highlightedTerm || tab.query}
-                            className="whitespace-pre-wrap"
+                            className="whitespace-pre-wrap [&_span]:rounded-sm [&_span]:bg-primary/20 [&_span]:px-1 [&_span]:py-0.5"
                           />
                         </p>
                         <div className="mt-2 flex gap-2">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
+                            className="h-8 border-border hover:bg-accent hover:text-accent-foreground"
                             onClick={() => {
                               setTabs((prev) =>
                                 prev.map((t) =>
@@ -605,26 +621,28 @@ export function SemanticSearch() {
                             {result.showFullContent ? 'Show Less' : 'Show More'}
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
+                            className="h-8 border-border hover:bg-accent hover:text-accent-foreground"
                             onClick={async () => {
                               try {
                                 const pdfPath = getOriginalPdfPath(
                                   result.file_path,
                                 )
                                 const { data, error } = await supabase.storage
-                                  .from('pdfs')
+                                  .from('user_objects')
                                   .download(pdfPath)
 
-                                if (error) return
+                                if (error) {
+                                  console.error('PDF fetch error:', error)
+                                  return
+                                }
 
                                 const blob = new Blob([data], {
                                   type: 'application/pdf',
                                 })
                                 const url = URL.createObjectURL(blob)
                                 setPdfUrl(url)
-
-                                return () => URL.revokeObjectURL(url)
                               } catch (error) {
                                 console.error('Failed to fetch PDF:', error)
                               }
@@ -656,16 +674,20 @@ export function SemanticSearch() {
           }
         }}
       >
-        <DialogContent className="h-[90vh] max-w-4xl p-0">
-          <DialogHeader className="p-4 pb-2">
-            <DialogTitle>Document Viewer</DialogTitle>
+        <DialogContent className="h-[90vh] max-w-[90vw] gap-0 border border-border p-0">
+          <DialogHeader className="border-b border-border px-4 py-2">
+            <DialogTitle className="text-lg font-medium">
+              Document Viewer
+            </DialogTitle>
           </DialogHeader>
           {pdfUrl && (
-            <iframe
-              src={pdfUrl}
-              className="h-[calc(90vh-3rem)] w-full rounded-b-md"
-              title="PDF Viewer"
-            />
+            <div className="relative h-full w-full">
+              <iframe
+                src={pdfUrl}
+                className="h-[calc(90vh-3rem)] w-full"
+                title="PDF Viewer"
+              />
+            </div>
           )}
         </DialogContent>
       </Dialog>

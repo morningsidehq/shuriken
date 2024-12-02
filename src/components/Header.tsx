@@ -13,13 +13,7 @@ import {
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './ThemeToggle'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { ChevronDown, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 export default async function Header() {
   const cookieStore = cookies()
@@ -62,8 +56,20 @@ export default async function Header() {
                   <NavigationMenuList>
                     <NavigationMenuItem>
                       <Link href="/dashboard" legacyBehavior passHref>
-                        <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
+                        <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
                           Home
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link href="/search" legacyBehavior passHref>
+                        <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                          Search
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
@@ -100,23 +106,11 @@ export default async function Header() {
                   </NavigationMenuList>
                 </NavigationMenu>
 
-                <NavigationMenu>
-                  <NavigationMenuList>
-                    <NavigationMenuItem>
-                      <Link href="/search" legacyBehavior passHref>
-                        <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
-                          Search
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
-
                 <NavigationMenu className="mr-2">
                   <NavigationMenuList>
                     <NavigationMenuItem>
                       <Link href="/analytics" legacyBehavior passHref>
-                        <NavigationMenuLink className="hover:scale-103 text-sm font-medium transition-transform duration-200 hover:text-foreground/80">
+                        <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
                           Analytics
                         </NavigationMenuLink>
                       </Link>
@@ -184,23 +178,30 @@ export default async function Header() {
                   </NavigationMenuList>
                 </NavigationMenu>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 px-3 py-2">
-                    Assistant
-                    <ChevronDown className="h-4 w-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem>
-                      <Link
-                        href="/assistant/search"
-                        className="flex items-center"
-                      >
-                        <Search className="mr-2 h-4 w-4" />
-                        AI Search
-                      </Link>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
+                        Assistant
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="min-w-[200px] rounded-md border border-border bg-popover p-2 shadow-md">
+                          <li>
+                            <Link
+                              href="/assistant/search"
+                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                            >
+                              <div className="flex items-center">
+                                <Search className="mr-2 h-4 w-4" />
+                                AI Search
+                              </div>
+                            </Link>
+                          </li>
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
               </div>
             </nav>
 

@@ -2,9 +2,7 @@
 import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
-import RecordsContent from '@/components/RecordsContent'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import RecordsFilters from '@/components/RecordsFilters'
+import PublicRecordsWrapper from '@/components/PublicRecordsWrapper'
 
 // Define page metadata
 export const metadata = {
@@ -130,22 +128,12 @@ export default async function Records() {
         <h1 className="mb-8 scroll-m-20 text-center text-4xl font-extrabold tracking-tight lg:text-5xl">
           Public Records
         </h1>
-        <div className="flex gap-6">
-          {/* Sticky sidebar */}
-          <div className="sticky top-8 h-[calc(100vh-12rem)] w-[280px] shrink-0">
-            <ScrollArea className="h-full rounded-lg border border-border bg-card p-4">
-              <RecordsFilters
-                types={types}
-                agencies={agencies}
-                allTags={allTags}
-              />
-            </ScrollArea>
-          </div>
-          {/* Main content */}
-          <div className="flex-1">
-            <RecordsContent completeRecords={completeRecords || []} />
-          </div>
-        </div>
+        <PublicRecordsWrapper
+          types={types}
+          agencies={agencies}
+          allTags={allTags}
+          completeRecords={completeRecords || []}
+        />
       </div>
     </div>
   )

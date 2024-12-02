@@ -16,19 +16,22 @@ const withMDX = require('@next/mdx')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  swcMinify: true,
 
   // Output as standalone build for production deployment
   output: 'standalone',
 
-  // Update experimental config
+  // Enable build caching for faster rebuilds
   experimental: {
-    // Replace serverComponentsExternalPackages with serverExternalPackages
-    serverExternalPackages: [
+    serverComponentsExternalPackages: [
       'styled-jsx',
       '@babel/core',
       'onnxruntime-node',
       '@xenova/transformers',
     ],
+    turbotrace: {
+      enabled: true,
+    },
   },
 
   // Image optimization configuration
