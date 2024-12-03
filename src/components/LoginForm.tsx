@@ -2,19 +2,29 @@
 
 import { createBrowserClient } from '@/utils/supabase'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { useEffect } from 'react'
 
 export default function LoginForm() {
   const router = useRouter()
   const supabase = createBrowserClient()
+  const searchParams = useSearchParams()
+  const message = searchParams?.get('message')
+
+  useEffect(() => {
+    // Clear any existing sessions on mount
+    if (message?.includes('expired')) {
+      supabase.auth.signOut()
+    }
+  }, [message, supabase.auth])
 
   const handleSignIn = async (formData: FormData) => {
     const email = String(formData.get('email'))
     const password = String(formData.get('password'))
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -24,7 +34,9 @@ export default function LoginForm() {
       return
     }
 
-    router.push('/dashboard')
+    if (data?.session) {
+      router.push('/dashboard')
+    }
   }
 
   const handleResetPassword = async (email: string) => {

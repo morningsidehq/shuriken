@@ -229,7 +229,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Entity search section */}
-      <Card className="m-3">
+      <Card className="m-3 border-border">
         <div className="p-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="relative">
@@ -276,7 +276,7 @@ export default function AnalyticsPage() {
       </Card>
 
       {/* Timeline visualization section */}
-      <Card className="m-3">
+      <Card className="m-3 border-border">
         <div className="p-4">
           <h3 className="mb-4 text-lg font-semibold">Entity Timeline</h3>
           <div className="h-[400px] w-full">
@@ -316,7 +316,7 @@ export default function AnalyticsPage() {
       </Card>
 
       {/* Document occurrences table section */}
-      <Card className="m-3">
+      <Card className="m-3 border-border">
         <div className="p-4">
           <h3 className="mb-4 text-lg font-semibold">Document Occurrences</h3>
           {/* Table implementation */}

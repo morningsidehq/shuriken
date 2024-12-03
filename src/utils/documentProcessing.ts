@@ -23,117 +23,74 @@ interface MetadataData {
   // Add other metadata fields
 }
 
-export const processDocument = async (file: File, basePath: string) => {
-  const supabase = createBrowserClient()
-
-  // Upload original PDF
-  const { error: uploadError } = await supabase.storage
-    .from('user_objects')
-    .upload(`${basePath}/original.pdf`, file, {
-      contentType: 'application/pdf',
-      upsert: false,
-    })
-
-  if (uploadError) throw uploadError
-
-  // Process each component in parallel
-  await Promise.all([
-    classifyDocument(file, basePath),
-    generateMetadata(file, basePath),
-    chunkDocument(file, basePath),
-  ])
+interface ProcessingResponse {
+  job_id: string
+  status: string
 }
 
-const classifyDocument = async (file: File, basePath: string) => {
-  const classification: ClassificationData = {
-    document_type: 'minutes',
-    agency: 'Appomattox (Town)',
-    date_created: new Date().toISOString().split('T')[0],
-    tags: [],
-    description: '',
-    external_object_urls: [],
-    entities: [],
-    title: file.name,
-    addresses: [],
-    taxmap_plat_ids: [],
-  }
+export async function processDocument(file: File, baseFilePath: string) {
+  try {
+    // Step 1: Process PDF
+    console.log('[Client] Starting document processing for:', file.name)
+    const formData = new FormData()
+    formData.append('file', file)
 
-  // Create JSON blob with proper MIME type
-  const classificationString = JSON.stringify(classification, null, 2)
-  const classificationBlob = new Blob([classificationString], {
-    type: 'application/json',
-  })
-
-  const supabase = createBrowserClient()
-  const { error } = await supabase.storage
-    .from('user_objects')
-    .upload(`${basePath}/classification.json`, classificationBlob, {
-      contentType: 'application/json',
-      upsert: true,
+    const processResponse = await fetch('/api/process-document', {
+      method: 'POST',
+      body: formData,
     })
 
-  if (error) {
-    console.error('Classification upload error:', error)
-    throw error
-  }
-
-  return classification
-}
-
-const generateMetadata = async (file: File, basePath: string) => {
-  const metadata: MetadataData = {
-    file_size: file.size,
-    page_count: 0,
-    created_date: new Date().toISOString(),
-    modified_date: new Date(file.lastModified).toISOString(),
-  }
-
-  const metadataString = JSON.stringify(metadata, null, 2)
-  const metadataBlob = new Blob([metadataString], {
-    type: 'application/json',
-  })
-
-  const supabase = createBrowserClient()
-  const { error } = await supabase.storage
-    .from('user_objects')
-    .upload(`${basePath}/metadata.json`, metadataBlob, {
-      contentType: 'application/json',
-      upsert: true,
-    })
-
-  if (error) {
-    console.error('Metadata upload error:', error)
-    throw error
-  }
-
-  return metadata
-}
-
-const chunkDocument = async (file: File, basePath: string) => {
-  // TODO: Replace with actual PDF chunking logic using the file
-  const chunks: string[] = ['Example page 1', 'Example page 2']
-  const supabase = createBrowserClient()
-
-  for (let i = 0; i < chunks.length; i++) {
-    const pageNumber = i + 1
-    const pageContent = chunks[i]
-
-    const pageBlob = new Blob([pageContent], {
-      type: 'text/plain',
-    })
-
-    const { error } = await supabase.storage
-      .from('user_objects')
-      .upload(`${basePath}/pages/${pageNumber}/page.txt`, pageBlob, {
-        contentType: 'text/plain',
-        upsert: true,
-      })
-
-    if (error) {
-      console.error(`Error uploading page ${pageNumber}:`, error)
-      throw error
+    if (!processResponse.ok) {
+      const error = await processResponse.json()
+      throw new Error(error.message || 'Failed to process PDF')
     }
-  }
 
-  return chunks
+    const processResult: ProcessingResponse = await processResponse.json()
+    const jobId = processResult.job_id
+
+    console.log('[Client] Process document response:', processResult)
+
+    // Step 2: Chunk the text
+    console.log('[Client] Starting text chunking for job:', jobId)
+    const chunkResponse = await fetch('/api/chunk-text', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ jobId }),
+    })
+
+    if (!chunkResponse.ok) {
+      const error = await chunkResponse.json()
+      throw new Error(error.message || 'Failed to chunk text')
+    }
+
+    const chunkResult = await chunkResponse.json()
+    console.log('[Client] Chunk text response:', chunkResult)
+
+    // Step 3: Upload record
+    console.log('[Client] Starting record upload for job:', jobId)
+    const uploadResponse = await fetch('/api/upload-record', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        jobId,
+        baseFilePath,
+      }),
+    })
+
+    const uploadResult = await uploadResponse.json()
+    console.log('[Client] Upload record response:', uploadResult)
+
+    if (!uploadResponse.ok) {
+      throw new Error(uploadResult.error || 'Failed to upload record')
+    }
+
+    return uploadResult
+  } catch (error: any) {
+    console.error('[Client] Document processing error:', error)
+    throw error
+  }
 }

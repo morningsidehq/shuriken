@@ -1,10 +1,10 @@
 # Constance Application Documentation
 
-Current Version: v0.5.6
+Current Version: v0.5.7
 
 ## Version History
 
-- v0.5.6: Added user group to document processing.
+- v0.5.7: Added user group to document processing. Added User Management interface for admin users.
 - v0.5.5: Fixed issue with cookie handling in middleware, user session handling, and semantic search.
 - v0.5.4: Enhanced semantic search functionality
   - Added multi-tab search interface for parallel searches
@@ -67,8 +67,9 @@ The application uses Supabase for authentication, implemented through:
 #### 3. Dashboard (`src/app/dashboard/page.tsx`)
 Protected page featuring:
 - Quick access tiles to main functionalities
-- Navigation to Records, Search, Actions, and Upload features
+- Navigation to Records, Search, Actions, Upload, and User Management features
 - Integration with user authentication state
+- Admin-specific features like User Management access
 
 #### 4. Records Management
 
@@ -188,6 +189,23 @@ Components:
     - Tab titles reflect search queries
     - Independent search contexts per tab
 
+#### 10. User Management (`src/app/user-management/page.tsx`)
+- Admin-only interface for managing system users
+- Protected route requiring admin role (user_role === 7)
+- Accessible via header menu and dashboard for admin users
+
+Components:
+- **UserManagementInterface**: Main interface for user administration
+- Features:
+  - User role management
+  - User group assignments
+  - Account status control
+  - Access level modification
+- Security:
+  - Role-based access control
+  - Admin-only functionality
+  - Audit logging for changes
+
 Features:
 - Hybrid search combining semantic and keyword matching
 - Real-time document preview
@@ -225,7 +243,7 @@ Database Functions:
 ### Shared Components
 
 #### Layout Components
-- **Header** (`src/components/Header.tsx`): Navigation and user context
+- **Header** (`src/components/Header.tsx`): Navigation and user context, including admin-specific menu items
 - **Footer** (`src/components/Footer.tsx`): Version information and credits
 
 #### UI Components
@@ -263,6 +281,7 @@ Components:
 - Shows recent activity and important notifications
 - Quick access to key features
 - Role-based content display
+- Admin-specific features including User Management access
 
 #### Records Page (`src/app/records/page.tsx`)
 - Protected route for viewing public records
@@ -295,6 +314,20 @@ Components:
 - Deadline management and notifications
 - Integration with user roles and permissions
 - Collaborative features for team coordination
+
+#### User Management Page (`src/app/user-management/page.tsx`)
+- Protected admin-only route
+- User administration interface
+- Features:
+  - User role management
+  - Group assignment controls
+  - Account status management
+  - Access level modification
+- Security measures:
+  - Admin-only access
+  - Role verification
+  - Action logging
+- Integration with Supabase auth
 
 ## API Structure
 

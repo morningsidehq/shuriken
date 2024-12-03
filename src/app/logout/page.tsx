@@ -1,51 +1,51 @@
-import { cookies } from 'next/headers'
-import { createServerClient } from '@/utils/supabase'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+'use client'
 
-export const metadata = {
-  title: 'Constance - Log Out Successful',
-}
+import { useEffect } from 'react'
+import { createBrowserClient } from '@/utils/supabase'
 
-export default async function LogoutPage() {
-  const cookieStore = cookies()
-  const supabase = createServerClient(cookieStore)
+export default function LogoutPage() {
+  const supabase = createBrowserClient()
 
-  // Check if user is already logged out
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  useEffect(() => {
+    const cleanup = async () => {
+      try {
+        // Ensure Supabase session is ended
+        await supabase.auth.signOut()
 
-  // If user is still logged in, force a logout
-  if (user) {
-    await supabase.auth.signOut()
-  }
+        // Clear storage
+        localStorage.clear()
+        sessionStorage.clear()
+
+        // Clear cookies
+        const cookies = document.cookie.split(';')
+        cookies.forEach((cookie) => {
+          const [name] = cookie.split('=').map((c) => c.trim())
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname}`
+        })
+
+        // Brief timeout to ensure cleanup is complete
+        await new Promise((resolve) => setTimeout(resolve, 200))
+
+        // Force a clean reload to the login page
+        window.location.href = '/login'
+      } catch (error) {
+        console.error('Error during logout cleanup:', error)
+        window.location.href = '/login'
+      }
+    }
+
+    cleanup()
+  }, [])
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center">
-      <Card className="w-[400px]">
-        <CardContent className="pt-6">
-          <h1 className="mb-8 text-center text-2xl font-bold">
-            Log Out Successful
-          </h1>
-
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-lg font-medium">
-              You have been logged out of Constance.
-            </p>
-
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-muted-foreground">
-                Would you like to log in again?
-              </p>
-              <Button asChild>
-                <Link href="/login">Log In</Link>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <h1 className="mb-4 text-2xl">Logging out...</h1>
+        <p className="text-muted-foreground">
+          Please wait while we sign you out.
+        </p>
+      </div>
     </div>
   )
 }

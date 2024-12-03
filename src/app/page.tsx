@@ -3,6 +3,13 @@
  * For more details on the landing page structure, see Pages Structure section in app-documentation.md
  */
 
+export const dynamic = 'force-dynamic'
+
+// Add this middleware config to explicitly mark as public
+export const middleware = {
+  skipAuth: true,
+}
+
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import {

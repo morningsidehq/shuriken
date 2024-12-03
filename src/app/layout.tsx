@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import BackToTop from '@/components/BackToTop'
 import Header from '@/components/Header'
 import { headers } from 'next/headers'
+import { Toaster } from '@/components/ui/toaster'
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -37,13 +38,13 @@ export default async function RootLayout({
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Get the current pathname
+  // Simplify header visibility logic - only hide on auth pages
   const headersList = await headers()
-  const pathname = headersList.get('x-pathname') || '/'
-
-  // Define paths where header should be hidden
+  const pathname = headersList.get('next-url') || '/'
   const hideHeaderPaths = ['/login', '/signup', '/reset-password']
-  const shouldShowHeader = !hideHeaderPaths.includes(pathname) && session
+  const shouldShowHeader = !hideHeaderPaths.some((path) =>
+    pathname.startsWith(path),
+  )
 
   return (
     <html
@@ -76,6 +77,7 @@ export default async function RootLayout({
             </ReactQueryProvider>
           </SupabaseProvider>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   )

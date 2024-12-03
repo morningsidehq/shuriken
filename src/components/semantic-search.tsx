@@ -274,13 +274,11 @@ type SearchTab = {
 
 interface SemanticSearchProps {
   userGroup: string
-  userId: string
   accessToken: string
 }
 
 export function SemanticSearch({
   userGroup,
-  userId,
   accessToken,
 }: SemanticSearchProps) {
   const [tabs, setTabs] = useState<SearchTab[]>([
@@ -361,13 +359,8 @@ export function SemanticSearch({
 
       // Format userGroup: remove spaces and ensure it exists
       const formattedUserGroup = userGroup.replace(/\s+/g, '')
-      console.log('Search params:', {
-        query: currentTab.query,
-        userGroup: formattedUserGroup,
-        userId,
-        hasAccessToken: !!accessToken,
-      })
 
+      // Add error handling for the embedding request
       const embeddingResponse = await fetch('/api/embeddings', {
         method: 'POST',
         headers: {
@@ -378,42 +371,42 @@ export function SemanticSearch({
       })
 
       if (!embeddingResponse.ok) {
-        throw new Error(`Embedding API error: ${embeddingResponse.status}`)
+        throw new Error(
+          `Embedding API error: ${await embeddingResponse.text()}`,
+        )
       }
 
       const { embedding } = await embeddingResponse.json()
 
-      const { data, error } = await supabase.rpc('hybrid_search_scoped', {
-        query_text: currentTab.query,
-        query_embedding: embedding,
-        user_group_filter: formattedUserGroup,
-        match_count: 5,
-        similarity_threshold: 0.0001,
-      })
-
-      if (error) {
-        console.error('Supabase search error:', error)
-        throw error
+      if (!embedding) {
+        throw new Error('No embedding received from API')
       }
 
-      // Fetch content for each result
+      // Add error handling for the search request
+      const { data: searchResults, error: searchError } = await supabase.rpc(
+        'hybrid_search_scoped',
+        {
+          query_text: currentTab.query,
+          query_embedding: embedding,
+          user_group_filter: formattedUserGroup,
+          match_count: 5,
+          similarity_threshold: 0.0001,
+        },
+      )
+
+      if (searchError) {
+        console.error('Supabase search error:', searchError)
+        throw searchError
+      }
+
+      // Process results with a timeout for each content fetch
       const resultsWithContent = await Promise.all(
-        (data || []).map(async (result: SearchResult) => {
-          try {
-            const content = await Promise.race([
-              fetchTextContent(result),
-              new Promise<string | undefined>((_, reject) =>
-                setTimeout(
-                  () => reject(new Error('Content fetch timeout')),
-                  10000,
-                ),
-              ),
-            ])
-            return { ...result, content } as SearchResult
-          } catch (error) {
-            console.error('Content fetch error:', error)
-            return { ...result, content: 'Content unavailable' } as SearchResult
-          }
+        (searchResults || []).map(async (result: SearchResult) => {
+          const content = await fetchTextContent(result).catch((error) => {
+            console.error('Content fetch error for', result.file_path, error)
+            return 'Content unavailable'
+          })
+          return { ...result, content } as SearchResult
         }),
       )
 
@@ -424,6 +417,7 @@ export function SemanticSearch({
       )
     } catch (error) {
       console.error('Search error:', error)
+      // Optionally add error state handling here
     } finally {
       setLoading(false)
     }

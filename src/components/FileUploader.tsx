@@ -115,6 +115,10 @@ export default function FileUploader({
       setUploadProgress(0)
 
       const baseFilePath = generateFilePath(selectedFile.name, userGroup)
+
+      setProcessingStep('Processing PDF...')
+      setUploadProgress(25)
+
       await processDocument(selectedFile, baseFilePath)
 
       setUploadProgress(100)

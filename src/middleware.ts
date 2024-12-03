@@ -6,6 +6,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createMiddlewareClient } from '@/utils/supabase'
 
+const PUBLIC_ROUTES = ['/login', '/signup', '/logout', '/reset-password', '/']
+
 // Simple in-memory store for rate limiting
 const rateLimit = new Map()
 
@@ -47,104 +49,60 @@ function checkRateLimit(request: NextRequest): NextResponse | null {
  * @returns NextResponse object with appropriate redirect or the original response
  */
 export async function middleware(request: NextRequest) {
-  // Define route configurations at the start
-  const protectedRoutes = ['/dashboard', '/actions', '/records', '/assistant']
-  const publicAuthRoutes = ['/login', '/signup', '/reset-password']
-  const currentPath = request.nextUrl.pathname
-
   try {
-    // Check rate limiting first
     const rateLimitResponse = checkRateLimit(request)
     if (rateLimitResponse) {
       return rateLimitResponse
     }
 
     const { supabase, response } = createMiddlewareClient(request)
+    const currentPath = request.nextUrl.pathname
 
-    try {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser()
-
-      if (error?.status === 400 && error?.code === 'session_expired') {
-        // Clear the expired session
-        await supabase.auth.signOut()
-
-        // Only redirect to login if trying to access protected routes
-        const isProtectedRoute = protectedRoutes.some((route) =>
-          request.nextUrl.pathname.startsWith(route),
-        )
-
-        if (isProtectedRoute) {
-          const redirectUrl = new URL('/login', request.url)
-          redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
-          return NextResponse.redirect(redirectUrl)
-        }
-      }
-
-      // Check route types
-      const isProtectedRoute = protectedRoutes.some((route) =>
-        currentPath.startsWith(route),
-      )
-      const isPublicAuthRoute = publicAuthRoutes.some((route) =>
-        currentPath.startsWith(route),
-      )
-      const isLogoutPage = currentPath === '/logout'
-
-      // Special handling for logout page - allow the logout process to complete
-      if (isLogoutPage) {
-        return response
-      }
-
-      // Redirect authenticated users away from auth pages
-      if (user && isPublicAuthRoute) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-
-      // Redirect unauthenticated users to login
-      if (!user && isProtectedRoute) {
-        const redirectUrl = new URL('/login', request.url)
-        redirectUrl.searchParams.set('redirectTo', currentPath)
-        return NextResponse.redirect(redirectUrl)
-      }
-
-      // Add CORS headers for semantic search and embeddings endpoints
-      if (
-        request.nextUrl.pathname === '/api/semantic-search' ||
-        request.nextUrl.pathname === '/api/embeddings'
-      ) {
-        const response = NextResponse.next()
-        response.headers.set('Access-Control-Allow-Credentials', 'true')
-        response.headers.set(
-          'Access-Control-Allow-Origin',
-          request.headers.get('origin') || '*',
-        )
-        response.headers.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-
-        // Handle preflight
-        if (request.method === 'OPTIONS') {
-          return response
-        }
-
-        return response
-      }
-
-      // Special handling for API routes
-      if (request.nextUrl.pathname.startsWith('/api/')) {
-        if (!user) {
-          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-      }
-    } catch (error) {
-      console.error('Auth error:', error)
-      // Handle other errors gracefully
+    // Skip auth check for public routes and static assets
+    if (
+      PUBLIC_ROUTES.some((route) => currentPath.startsWith(route)) ||
+      currentPath.startsWith('/_next') ||
+      currentPath.startsWith('/static')
+    ) {
       return response
+    }
+
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession()
+
+    // Only redirect if not on a public route
+    if (!session && !PUBLIC_ROUTES.includes(currentPath)) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('redirectTo', currentPath)
+      return NextResponse.redirect(loginUrl)
+    }
+
+    // Don't redirect on auth errors for public routes
+    if (error && !PUBLIC_ROUTES.includes(currentPath)) {
+      console.error('Auth error:', error)
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set(
+        'message',
+        'Session expired, please log in again.',
+      )
+      return NextResponse.redirect(loginUrl)
     }
 
     return response
   } catch (e) {
     console.error('Middleware error:', e)
+    // Only redirect to login on critical errors if not on a public route
+    const currentPath = request.nextUrl.pathname
+    if (!PUBLIC_ROUTES.includes(currentPath)) {
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set(
+        'message',
+        'An error occurred. Please try again.',
+      )
+      return NextResponse.redirect(loginUrl)
+    }
     return NextResponse.next()
   }
 }

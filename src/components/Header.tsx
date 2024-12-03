@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './ThemeToggle'
 import { Search } from 'lucide-react'
+import { FaUsers } from 'react-icons/fa'
 
 export default async function Header() {
   const cookieStore = cookies()
@@ -28,6 +29,18 @@ export default async function Header() {
     console.error('Error fetching user:', error)
     return null
   }
+
+  if (!user) {
+    return null
+  }
+
+  const { data: userData } = await supabase
+    .from('profiles')
+    .select('user_role')
+    .eq('id', user.id)
+    .single()
+
+  const isAdmin = userData?.user_role === 7
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -202,6 +215,21 @@ export default async function Header() {
                     </NavigationMenuItem>
                   </NavigationMenuList>
                 </NavigationMenu>
+
+                {user && isAdmin && (
+                  <NavigationMenu>
+                    <NavigationMenuList>
+                      <NavigationMenuItem>
+                        <Link href="/user-management" legacyBehavior passHref>
+                          <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                            <FaUsers className="mr-2 h-4 w-4" />
+                            User Management
+                          </NavigationMenuLink>
+                        </Link>
+                      </NavigationMenuItem>
+                    </NavigationMenuList>
+                  </NavigationMenu>
+                )}
               </div>
             </nav>
 

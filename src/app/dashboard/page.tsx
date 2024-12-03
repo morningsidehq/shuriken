@@ -17,6 +17,7 @@ import {
   FaBuilding,
   FaChartBar,
   FaRobot,
+  FaUsers,
 } from 'react-icons/fa'
 import Image from 'next/image'
 
@@ -47,9 +48,11 @@ export default async function DashboardPage() {
   // Fetch user profile data including group membership
   const { data: userData } = await supabase
     .from('profiles')
-    .select('user_group')
+    .select('user_group, user_role')
     .eq('id', user.id)
     .single()
+
+  const isAdmin = userData?.user_role === 7
 
   return (
     <div className="container py-10">
@@ -87,7 +90,7 @@ export default async function DashboardPage() {
         <div className="grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {/* First row */}
           {/* View Records card with internal options */}
-          <div className="group relative h-[120px] w-[200px]">
+          <div className="group relative h-[120px] w-[200px] border-border">
             <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-all duration-300 group-hover:opacity-0">
               <FaFolder className="mb-2 h-6 w-6" />
               <h3 className="text-sm font-semibold">View Records</h3>
@@ -171,6 +174,16 @@ export default async function DashboardPage() {
               </Link>
             </div>
           </div>
+
+          {isAdmin && (
+            <Link
+              href="/user-management"
+              className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <FaUsers className="mb-2 h-6 w-6" />
+              <h3 className="text-sm font-semibold">User Management</h3>
+            </Link>
+          )}
         </div>
       </div>
     </div>

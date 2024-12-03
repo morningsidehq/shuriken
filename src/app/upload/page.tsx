@@ -56,7 +56,7 @@ export default async function Upload() {
           </AlertDescription>
         </Alert>
 
-        <Card>
+        <Card className="border-border">
           <CardHeader>
             <h2 className="text-xl font-semibold">
               Upload and Classify Documents

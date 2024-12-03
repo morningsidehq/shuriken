@@ -53,7 +53,7 @@ export default async function AdvancedRecordCreation() {
           </AlertDescription>
         </Alert>
 
-        <Card>
+        <Card className="border-border">
           <CardHeader>
             <h2 className="text-xl font-semibold">File Upload</h2>
           </CardHeader>
