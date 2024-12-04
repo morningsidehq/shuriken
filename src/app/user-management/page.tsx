@@ -2,6 +2,8 @@ import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
 import { FaUsers } from 'react-icons/fa'
+import AgencyUserManagement from '../../components/user-management/AgencyUserManagement'
+import AdminUserManagement from '../../components/user-management/AdminUserManagement'
 
 export const metadata = {
   title: 'Constance - User Management',
@@ -20,16 +22,21 @@ export default async function UserManagementPage() {
     redirect('/login')
   }
 
-  // Check if user has admin role
+  // Check user's role and group
   const { data: userData } = await supabase
     .from('profiles')
-    .select('user_role')
+    .select('user_role, user_group')
     .eq('id', user.id)
     .single()
 
-  if (!userData || userData.user_role !== 7) {
+  // Redirect if not an admin or agency admin
+  if (!userData || (userData.user_role !== 5 && userData.user_role !== 7)) {
     redirect('/dashboard')
   }
+
+  console.log('User Role:', userData?.user_role)
+  console.log('User Group:', userData?.user_group)
+  console.log('Is Agency Admin:', userData?.user_role === 7)
 
   return (
     <div className="container py-10">
@@ -38,12 +45,15 @@ export default async function UserManagementPage() {
         <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
       </div>
 
-      {/* Add your user management content here */}
-      <div className="mt-8">
-        <p className="text-center text-muted-foreground">
-          User management interface coming soon...
-        </p>
-      </div>
+      {userData?.user_role === 5 ? (
+        <AdminUserManagement />
+      ) : userData?.user_role === 7 ? (
+        <AgencyUserManagement userGroup={userData.user_group} />
+      ) : (
+        <div className="mt-8 text-center text-muted-foreground">
+          Access Denied. Invalid user role.
+        </div>
+      )}
     </div>
   )
 }

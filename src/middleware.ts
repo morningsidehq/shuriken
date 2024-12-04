@@ -58,11 +58,12 @@ export async function middleware(request: NextRequest) {
     const { supabase, response } = createMiddlewareClient(request)
     const currentPath = request.nextUrl.pathname
 
-    // Skip auth check for public routes and static assets
+    // Add API routes to PUBLIC_ROUTES
     if (
       PUBLIC_ROUTES.some((route) => currentPath.startsWith(route)) ||
       currentPath.startsWith('/_next') ||
-      currentPath.startsWith('/static')
+      currentPath.startsWith('/static') ||
+      currentPath.startsWith('/api/')
     ) {
       return response
     }
@@ -71,6 +72,11 @@ export async function middleware(request: NextRequest) {
       data: { session },
       error,
     } = await supabase.auth.getSession()
+
+    // Set session cookie even for public routes
+    if (session) {
+      response.cookies.set('supabase-auth-token', JSON.stringify(session))
+    }
 
     // Only redirect if not on a public route
     if (!session && !PUBLIC_ROUTES.includes(currentPath)) {

@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@/utils/supabase'
-import LogoutButton from './LogoutButton'
 import Image from 'next/image'
 import {
   NavigationMenu,
@@ -27,17 +26,12 @@ export default async function Header() {
 
   if (error) {
     console.error('Error fetching user:', error)
-    return null
-  }
-
-  if (!user) {
-    return null
   }
 
   const { data: userData } = await supabase
     .from('profiles')
     .select('user_role')
-    .eq('id', user.id)
+    .eq('id', user?.id || '')
     .single()
 
   const isAdmin = userData?.user_role === 7
@@ -61,8 +55,8 @@ export default async function Header() {
           </Link>
         </div>
 
-        {user ? (
-          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+          {user ? (
             <nav className="flex items-center">
               <div className="flex space-x-2">
                 <NavigationMenu>
@@ -232,25 +226,20 @@ export default async function Header() {
                 )}
               </div>
             </nav>
-
-            <div className="flex items-center gap-2">
+          ) : (
+            <div className="flex flex-1 items-center justify-end gap-2 md:flex">
               <ThemeToggle />
-              <LogoutButton className="px-4" />
+              <Link
+                href="/login"
+                className={cn(
+                  'text-sm font-medium transition-colors hover:text-primary',
+                )}
+              >
+                Login
+              </Link>
             </div>
-          </div>
-        ) : (
-          <div className="flex flex-1 items-center justify-end gap-2 md:flex">
-            <ThemeToggle />
-            <Link
-              href="/login"
-              className={cn(
-                'text-sm font-medium transition-colors hover:text-primary',
-              )}
-            >
-              Login
-            </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </header>
   )

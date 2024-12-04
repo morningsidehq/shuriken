@@ -1,42 +1,52 @@
 # Constance Application Documentation
 
-Current Version: v0.5.7
+Current Version: v0.5.8
+
+Version Notes: Fixed issue with user management page. Added New User functionality for Agency Admins. Added group confirmation for new users.
 
 ## Version History
 
-- v0.5.7: Added user group to document processing. Added User Management interface for admin users.
-- v0.5.5: Fixed issue with cookie handling in middleware, user session handling, and semantic search.
-- v0.5.4: Enhanced semantic search functionality
-  - Added multi-tab search interface for parallel searches
-  - Implemented search analysis panel with bot interface
-  - Added common terms highlighting and one-click search
-  - Enhanced PDF viewer with lightbox modal
-  - Improved document content preview and analysis
-- v0.5.1: Fixed issue with semantic search causing build failure.
-- v0.5.0: Added semantic search capabilities and AI assistant features
-  - Implemented semantic search using all-mpnet-base-v2 model
-  - Added document content preview in search results
-  - Integrated hybrid search functionality with Supabase vector storage
-  - Added similarity scoring and metadata display
-- v0.4.6: Added Entity analysis page.
-- v0.4.55: Added more detailed commenting throughout the codebase.
-- v0.4.5: Implemented shadcn/ui components across all major pages. Overhauled Records, Agency Records, and Intake pages.
-- v0.4.4: Fixed issue with TypeScript error with AgencyRecordsTable.tsx causing build failure. Fixed issue with calendar component.
-- v0.4.3: Overhauled Agency Records page. Fixed multiple build/deployment issues with components. Fixed upload intake area.
-- v0.4.23: Fixed TypeScript error with AgencyRecordsTable.tsx causing build failure. Fixed issue with calendar component.
-- v0.4.1: Styling and layout overhaul to shadcn/ui. Updated login component. Fixed issue with org records appearing in public records page.
-- v0.4.0: Installed shadcn/ui. Added dark mode toggle. Fixed header navigation menu.
-- v0.3.7: Further updated session handling. Login button should now redirect immediately.
-- v0.3.6: Updated session handling to attempt to get the Login, Logout buttons to redirect immediately. Added Global and Agency buttons to view records on dashboard.
-- v0.3.5: Rearranged layout of Dashboard page and added the user's organization to the subtitle. Fixed an issue with the actions page.
-- v0.3.4: Added documentation page.
-- v0.3.3: Fixed runtime error on Public Records page. Fixed issue with build and deployment related to middleware and supabase.
-- v0.3.0: Added agency records page, added PDF viewer, added more detailed filtering options.
-- v0.2.51: Changed the deployment settings to work better with Digital Ocean.
-- v0.2.5: Added insert ability to actions page. 213 filter capabilities to actions page.
-- v0.2.41: Removed all Mobile-specific styling and RWD as it was causing issues.
-- v0.2.4: Added the Actions page and some functionality.
-- v0.2.3: Added advanced record creation, changed landing page for Constance-specific, added dashboard links with updated styling/layout, added Constance logo to loading screen.
+- v0.5:
+  - v0.5.8: Fixed issue with user management page. Added New User functionality for Agency Admins. Added group confirmation for new users.
+  - v0.5.7: Added user group to document processing. Added User Management interface for admin users.
+  - v0.5.5: Fixed issue with cookie handling in middleware, user session handling, and semantic search.
+  - v0.5.4: Enhanced semantic search functionality
+    - Added multi-tab search interface for parallel searches
+    - Implemented search analysis panel with bot interface
+    - Added common terms highlighting and one-click search
+    - Enhanced PDF viewer with lightbox modal
+    - Improved document content preview and analysis
+  - v0.5.1: Fixed issue with semantic search causing build failure.
+  - v0.5.0: Added semantic search capabilities and AI assistant features
+    - Implemented semantic search using all-mpnet-base-v2 model
+    - Added document content preview in search results
+    - Integrated hybrid search functionality with Supabase vector storage
+    - Added similarity scoring and metadata display
+
+- v0.4:
+  - v0.4.6: Added Entity analysis page.
+  - v0.4.55: Added more detailed commenting throughout the codebase.
+  - v0.4.5: Implemented shadcn/ui components across all major pages. Overhauled Records, Agency Records, and Intake pages.
+  - v0.4.4: Fixed issue with TypeScript error with AgencyRecordsTable.tsx causing build failure. Fixed issue with calendar component.
+  - v0.4.3: Overhauled Agency Records page. Fixed multiple build/deployment issues with components. Fixed upload intake area.
+  - v0.4.23: Fixed TypeScript error with AgencyRecordsTable.tsx causing build failure. Fixed issue with calendar component.
+  - v0.4.1: Styling and layout overhaul to shadcn/ui. Updated login component. Fixed issue with org records appearing in public records page.
+  - v0.4.0: Installed shadcn/ui. Added dark mode toggle. Fixed header navigation menu.
+
+- v0.3:
+  - v0.3.7: Further updated session handling. Login button should now redirect immediately.
+  - v0.3.6: Updated session handling to attempt to get the Login, Logout buttons to redirect immediately. Added Global and Agency buttons to view records on dashboard.
+  - v0.3.5: Rearranged layout of Dashboard page and added the user's organization to the subtitle. Fixed an issue with the actions page.
+  - v0.3.4: Added documentation page.
+  - v0.3.3: Fixed runtime error on Public Records page. Fixed issue with build and deployment related to middleware and supabase.
+  - v0.3.0: Added agency records page, added PDF viewer, added more detailed filtering options.
+
+- v0.2:
+  - v0.2.51: Changed the deployment settings to work better with Digital Ocean.
+  - v0.2.5: Added insert ability to actions page. 213 filter capabilities to actions page.
+  - v0.2.41: Removed all Mobile-specific styling and RWD as it was causing issues.
+  - v0.2.4: Added the Actions page and some functionality.
+  - v0.2.3: Added advanced record creation, changed landing page for Constance-specific, added dashboard links with updated styling/layout, added Constance logo to loading screen.
 
 ## Application Structure
 
@@ -189,23 +199,6 @@ Components:
     - Tab titles reflect search queries
     - Independent search contexts per tab
 
-#### 10. User Management (`src/app/user-management/page.tsx`)
-- Admin-only interface for managing system users
-- Protected route requiring admin role (user_role === 7)
-- Accessible via header menu and dashboard for admin users
-
-Components:
-- **UserManagementInterface**: Main interface for user administration
-- Features:
-  - User role management
-  - User group assignments
-  - Account status control
-  - Access level modification
-- Security:
-  - Role-based access control
-  - Admin-only functionality
-  - Audit logging for changes
-
 Features:
 - Hybrid search combining semantic and keyword matching
 - Real-time document preview
@@ -225,6 +218,50 @@ Features:
   - Direct access to original PDF documents
   - Clean, minimal interface
   - Automatic resource cleanup
+
+#### 10. User Management (`src/app/user-management/page.tsx`)
+- Admin-only interface for managing system users
+- Two distinct interfaces based on user role:
+  1. Agency Admin Interface (user_role === 7):
+    - Management of users within their specific agency group
+    - User addition with automatic group assignment
+    - User confirmation capabilities
+    - Real-time user status updates
+    - User list with filtering and refresh capabilities
+  2. System Admin Interface (user_role === 5):
+    - Global user management capabilities (planned)
+    - Cross-agency user administration
+    - System-wide role management
+
+Components:
+- **AgencyUserManagement**: Agency-specific user management interface
+  - Real-time user list with status indicators
+  - User confirmation controls
+  - Refresh functionality
+  - Empty state handling
+  
+- **AddAgencyUserModal**: New user creation interface
+  - Automated user provisioning
+  - Temporary password generation
+  - Profile creation with agency group assignment
+  - Error handling and validation
+  - Loading states and feedback
+
+Features:
+- Role-based access control:
+  - System Admin (role 5): Full system access
+  - Agency Admin (role 7): Agency-specific access
+- User status management:
+  - Pending/Confirmed status tracking
+  - User confirmation workflow
+- Security:
+  - Role verification
+  - Group-based access restrictions
+  - Audit logging for changes
+- Real-time updates:
+  - Immediate status changes
+  - List refresh capabilities
+  - Loading states
 
 API Routes:
 - **/api/embeddings**: Text embedding generation endpoint
@@ -316,18 +353,29 @@ Components:
 - Collaborative features for team coordination
 
 #### User Management Page (`src/app/user-management/page.tsx`)
-- Protected admin-only route
-- User administration interface
+- Protected route with dual-role access (System Admin and Agency Admin)
+- Server-side role verification
 - Features:
-  - User role management
-  - Group assignment controls
-  - Account status management
-  - Access level modification
+  - Dynamic interface based on user role
+  - Agency-specific user management
+  - User addition workflow:
+    - Basic user information collection
+    - Automatic group assignment
+    - Temporary password generation
+    - Email notification system
+  - User status management:
+    - Confirmation workflow
+    - Status indicators
+    - Real-time updates
+  - List management:
+    - Refresh capabilities
+    - Loading states
+    - Empty state handling
 - Security measures:
-  - Admin-only access
-  - Role verification
-  - Action logging
-- Integration with Supabase auth
+  - Role-based access control
+  - Group-based restrictions
+  - Server-side validation
+  - Error handling
 
 ## API Structure
 
@@ -371,3 +419,23 @@ Components:
   - Similarity scores
   - File paths
   - Content preview capabilities
+
+### User Management
+
+#### User Creation
+- Handles new user provisioning through Supabase Auth
+- Creates associated profile records
+- Manages temporary credentials
+- Implements group assignment
+
+#### User Confirmation
+- Updates user confirmation status
+- Validates agency group membership
+- Ensures proper role assignments
+- Maintains audit trail
+
+#### Profile Management
+- Handles user profile updates
+- Manages user role assignments
+- Controls agency group associations
+- Implements data validation and sanitization

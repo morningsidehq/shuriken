@@ -36,7 +36,13 @@ export default async function RootLayout({
   const supabase = createServerClient(cookieStore)
   const {
     data: { session },
+    error: sessionError,
   } = await supabase.auth.getSession()
+
+  // Log any session errors but don't fail
+  if (sessionError) {
+    console.error('Session error:', sessionError)
+  }
 
   // Simplify header visibility logic - only hide on auth pages
   const headersList = await headers()
