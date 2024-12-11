@@ -15,12 +15,13 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
-type SearchResult = {
+interface SearchResult {
   id: string
   file_path: string
-  content?: string
+  content: string
   similarity: number
-  page_number?: number
+  page_number: number
+  job_id: number
   showFullContent?: boolean
 }
 
@@ -277,6 +278,15 @@ interface SemanticSearchProps {
   accessToken: string
 }
 
+// Add interface above the transform
+interface SearchResponse {
+  id: number
+  job_id: number
+  chunk_text: string
+  page_number: number
+  similarity: number
+}
+
 export function SemanticSearch({
   userGroup,
   accessToken,
@@ -290,7 +300,7 @@ export function SemanticSearch({
   const [highlightedTerm, setHighlightedTerm] = useState<string>('')
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
 
-  // Initialize Supabase client with auth context
+  // Initialize Supabase client with auth context and access token
   const supabase = createClientComponentClient({
     options: {
       global: {
@@ -300,29 +310,6 @@ export function SemanticSearch({
       },
     },
   })
-
-  const fetchTextContent = async (result: SearchResult) => {
-    try {
-      // Extract the user group and document folder from the file path
-      const pathParts = result.file_path.split('/')
-      const userGroup = pathParts[0]
-      const documentFolder = pathParts[1]
-      const pageNumber = result.page_number || 1 // Fallback to page 1 if not specified
-
-      // Fetch from user_objects bucket, targeting the specific page.txt
-      const { data, error } = await supabase.storage
-        .from('user_objects')
-        .download(`${userGroup}/${documentFolder}/pages/${pageNumber}/page.txt`)
-
-      if (error) throw error
-
-      const text = await data.text()
-      return text
-    } catch (error) {
-      console.error('Error fetching text content:', error)
-      return undefined
-    }
-  }
 
   const getOriginalPdfPath = (pagePath: string): string => {
     const pathParts = pagePath.split('/')
@@ -349,18 +336,10 @@ export function SemanticSearch({
     const currentTab = tabs.find((t) => t.id === tabId)
     if (!currentTab?.query.trim()) return
 
-    if (!userGroup) {
-      console.error('User group is not defined')
-      return
-    }
-
     try {
       setLoading(true)
 
-      // Format userGroup: remove spaces and ensure it exists
-      const formattedUserGroup = userGroup.replace(/\s+/g, '')
-
-      // Add error handling for the embedding request
+      // Get embedding from your API
       const embeddingResponse = await fetch('/api/embeddings', {
         method: 'POST',
         headers: {
@@ -378,46 +357,48 @@ export function SemanticSearch({
 
       const { embedding } = await embeddingResponse.json()
 
-      if (!embedding) {
-        throw new Error('No embedding received from API')
+      if (!embedding || !Array.isArray(embedding)) {
+        throw new Error('Invalid embedding format received')
       }
 
-      // Add error handling for the search request
+      // Call the hybrid search function
       const { data: searchResults, error: searchError } = await supabase.rpc(
         'hybrid_search_scoped',
         {
           query_text: currentTab.query,
           query_embedding: embedding,
-          user_group_filter: formattedUserGroup,
-          match_count: 5,
+          user_group_filter: userGroup,
+          match_count: 10,
           similarity_threshold: 0.0001,
         },
       )
 
       if (searchError) {
-        console.error('Supabase search error:', searchError)
+        console.error('Search error:', searchError)
         throw searchError
       }
 
-      // Process results with a timeout for each content fetch
-      const resultsWithContent = await Promise.all(
-        (searchResults || []).map(async (result: SearchResult) => {
-          const content = await fetchTextContent(result).catch((error) => {
-            console.error('Content fetch error for', result.file_path, error)
-            return 'Content unavailable'
-          })
-          return { ...result, content } as SearchResult
+      // Update transform with type and correct mapping
+      const transformedResults = (searchResults || []).map(
+        (result: SearchResponse) => ({
+          id: result.id.toString(),
+          file_path: result.job_id.toString(),
+          content: result.chunk_text,
+          similarity: result.similarity,
+          page_number: result.page_number,
+          job_id: result.job_id,
+          showFullContent: false,
         }),
       )
 
       setTabs((prev) =>
-        prev.map((tab) =>
-          tab.id === tabId ? { ...tab, results: resultsWithContent } : tab,
+        prev.map((t) =>
+          t.id === tabId ? { ...t, results: transformedResults } : t,
         ),
       )
     } catch (error) {
       console.error('Search error:', error)
-      // Optionally add error state handling here
+      // Optionally set an error state here
     } finally {
       setLoading(false)
     }

@@ -1,10 +1,19 @@
 # Constance Application Documentation
 
-Current Version: v0.6.4
+Current Version: v0.6.5
 
-Version Notes: Enhanced document processing pipeline with improved user group handling, API integration, and embeddings metadata management.
+Version Notes: Enhanced semantic search functionality with improved vector matching, multi-tab interface, and direct content preview.
+
 ## Version History
 
+- v0.6.5: Enhanced semantic search functionality
+  - Improved vector search with direct content access
+  - Removed storage bucket dependencies for text retrieval
+  - Enhanced multi-tab search interface
+  - Added real-time content preview
+  - Improved error handling and loading states
+  - Updated hybrid search function with better text matching
+  - Added user group context for search scoping
 - v0.6:
   - v0.6.4: Enhanced document processing pipeline
     - Implemented comprehensive document processing workflow with FastAPI integration
