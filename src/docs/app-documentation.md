@@ -1,20 +1,25 @@
 # Constance Application Documentation
 
-Current Version: v0.6.5
+Current Version: v0.6.6
 
-Version Notes: Enhanced semantic search functionality with improved vector matching, multi-tab interface, and direct content preview.
+Version Notes: Added "View Full Doc" functionality.
 
 ## Version History
 
-- v0.6.5: Enhanced semantic search functionality
-  - Improved vector search with direct content access
-  - Removed storage bucket dependencies for text retrieval
-  - Enhanced multi-tab search interface
-  - Added real-time content preview
-  - Improved error handling and loading states
-  - Updated hybrid search function with better text matching
-  - Added user group context for search scoping
 - v0.6:
+  - v0.6.6: Added "View Full Doc" functionality
+    - Implemented surrounding text retrieval for search results
+    - Added ability to view complete document context
+    - Enhanced result navigation with expanded content view
+    - Improved user experience with contextual document access
+  - v0.6.5: Enhanced semantic search functionality
+    - Improved vector search with direct content access
+    - Removed storage bucket dependencies for text retrieval
+    - Enhanced multi-tab search interface
+    - Added real-time content preview
+    - Improved error handling and loading states
+    - Updated hybrid search function with better text matching
+    - Added user group context for search scoping
   - v0.6.4: Enhanced document processing pipeline
     - Implemented comprehensive document processing workflow with FastAPI integration
     - Added user group and user ID tracking throughout processing pipeline
@@ -271,40 +276,22 @@ API Routes:
 
 #### 9. Semantic Search (`src/app/assistant/search/page.tsx`)
 - Advanced document search using embeddings and vector similarity
-- Real-time content preview capabilities
+- Real-time content preview directly from search results
 - Multi-tab search interface for parallel searches
+- User group-scoped search results
 
 Components:
 - **SemanticSearch**: Main search interface with hybrid search capabilities
   - Uses all-mpnet-base-v2 model for text embeddings
   - Implements similarity-based document matching
-  - Features document content preview
+  - Direct content preview from vector storage
   - Displays metadata and similarity scores
-  - Progressive loading of document content
   - Multi-tab search functionality:
     - Dynamic tab creation and removal
-    - Tab titles reflect search queries
     - Independent search contexts per tab
-
-Features:
-- Hybrid search combining semantic and keyword matching
-- Real-time document preview
-- Similarity score display
-- File metadata information
-- Responsive search results display
-- Error handling and loading states
-- Search Analysis Panel:
-  - Bot-assisted analysis presentation
-  - Most common terms identification with:
-    - Term highlighting in results
-    - One-click new search capability
-  - Document clustering by similarity
-  - File size and similarity statistics
-- PDF Document Viewer:
-  - Lightbox-style modal display
-  - Direct access to original PDF documents
-  - Clean, minimal interface
-  - Automatic resource cleanup
+    - Parallel search capabilities
+  - User group context integration
+  - Enhanced error handling and loading states
 
 #### 10. User Management (`src/app/user-management/page.tsx`)
 - Admin-only interface for managing system users

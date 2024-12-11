@@ -287,6 +287,15 @@ interface SearchResponse {
   similarity: number
 }
 
+interface ChunkResponse {
+  chunk_text: string
+  page_number: number
+  sequence_order: number
+  id: number
+  job_id: number
+  similarity: number
+}
+
 export function SemanticSearch({
   userGroup,
   accessToken,
@@ -299,6 +308,9 @@ export function SemanticSearch({
   const [showSummary, setShowSummary] = useState(false)
   const [highlightedTerm, setHighlightedTerm] = useState<string>('')
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [selectedResult, setSelectedResult] = useState<SearchResult | null>(
+    null,
+  )
 
   // Initialize Supabase client with auth context and access token
   const supabase = createClientComponentClient({
@@ -311,10 +323,8 @@ export function SemanticSearch({
     },
   })
 
-  const getOriginalPdfPath = (pagePath: string): string => {
-    const pathParts = pagePath.split('/')
-    // Return path to original.pdf in the document folder
-    return `${pathParts[0]}/${pathParts[1]}/original.pdf`
+  const getOriginalPdfPath = (jobId: string, userGroupId: string) => {
+    return `${userGroupId}/${jobId}/original.pdf`
   }
 
   const addNewTab = () => {
@@ -441,6 +451,50 @@ export function SemanticSearch({
 
     // Join the relevant sentences
     return topSentences.join('. ') + '.'
+  }
+
+  // Add function to get surrounding chunks
+  const getSurroundingText = async (result: SearchResult) => {
+    try {
+      console.log('Fetching surrounding text for:', {
+        id: result.id,
+        job_id: result.job_id,
+      })
+
+      // Use the same hybrid search function but with the chunk ID
+      const { data: searchResults, error } = await supabase.rpc(
+        'hybrid_search_scoped',
+        {
+          query_text: '', // Empty query since we're searching by ID
+          query_embedding: [], // Empty embedding since we're searching by ID
+          user_group_filter: userGroup,
+          match_count: 5, // Get 5 chunks (current + 2 before + 2 after)
+          similarity_threshold: 0.0,
+          chunk_id_filter: parseInt(result.id), // Add this parameter to the hybrid search function
+        },
+      )
+
+      if (error) {
+        console.error('Search error:', error)
+        return result.content
+      }
+
+      if (!searchResults || searchResults.length === 0) {
+        return result.content
+      }
+
+      // Transform and combine the results
+      return searchResults
+        .sort(
+          (a: ChunkResponse, b: ChunkResponse) =>
+            a.sequence_order - b.sequence_order,
+        )
+        .map((chunk: ChunkResponse) => chunk.chunk_text)
+        .join('\n\n')
+    } catch (error) {
+      console.error('Error fetching surrounding text:', error)
+      return result.content
+    }
   }
 
   return (
@@ -572,25 +626,44 @@ export function SemanticSearch({
                             variant="outline"
                             size="sm"
                             className="h-8 border-border hover:bg-accent hover:text-accent-foreground"
-                            onClick={() => {
-                              setTabs((prev) =>
-                                prev.map((t) =>
-                                  t.id === tab.id
-                                    ? {
-                                        ...t,
-                                        results: t.results.map((r) =>
-                                          r.id === result.id
-                                            ? {
-                                                ...r,
-                                                showFullContent:
-                                                  !r.showFullContent,
-                                              }
-                                            : r,
-                                        ),
-                                      }
-                                    : t,
-                                ),
-                              )
+                            onClick={async () => {
+                              if (!result.showFullContent) {
+                                const expandedContent =
+                                  await getSurroundingText(result)
+                                setTabs((prev) =>
+                                  prev.map((t) =>
+                                    t.id === activeTab
+                                      ? {
+                                          ...t,
+                                          results: t.results.map((r) =>
+                                            r.id === result.id
+                                              ? {
+                                                  ...r,
+                                                  content: expandedContent,
+                                                  showFullContent: true,
+                                                }
+                                              : r,
+                                          ),
+                                        }
+                                      : t,
+                                  ),
+                                )
+                              } else {
+                                setTabs((prev) =>
+                                  prev.map((t) =>
+                                    t.id === activeTab
+                                      ? {
+                                          ...t,
+                                          results: t.results.map((r) =>
+                                            r.id === result.id
+                                              ? { ...r, showFullContent: false }
+                                              : r,
+                                          ),
+                                        }
+                                      : t,
+                                  ),
+                                )
+                              }
                             }}
                           >
                             {result.showFullContent ? 'Show Less' : 'Show More'}
@@ -600,10 +673,14 @@ export function SemanticSearch({
                             size="sm"
                             className="h-8 border-border hover:bg-accent hover:text-accent-foreground"
                             onClick={async () => {
+                              setSelectedResult(result)
                               try {
                                 const pdfPath = getOriginalPdfPath(
-                                  result.file_path,
+                                  result.job_id.toString(),
+                                  userGroup,
                                 )
+                                console.log('Fetching PDF from path:', pdfPath)
+
                                 const { data, error } = await supabase.storage
                                   .from('user_objects')
                                   .download(pdfPath)
@@ -649,16 +726,16 @@ export function SemanticSearch({
           }
         }}
       >
-        <DialogContent className="h-[90vh] max-w-[90vw] gap-0 border border-border p-0">
+        <DialogContent className="h-[90vh] max-w-[45vw] gap-0 border border-border p-0">
           <DialogHeader className="border-b border-border px-4 py-2">
             <DialogTitle className="text-lg font-medium">
-              Document Viewer
+              Document Viewer - Page {selectedResult?.page_number || 1}
             </DialogTitle>
           </DialogHeader>
           {pdfUrl && (
             <div className="relative h-full w-full">
               <iframe
-                src={pdfUrl}
+                src={`${pdfUrl}#page=${selectedResult?.page_number || 1}`}
                 className="h-[calc(90vh-3rem)] w-full"
                 title="PDF Viewer"
               />
