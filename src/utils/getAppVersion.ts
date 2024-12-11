@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import { readFileSync } from 'fs'
 import path from 'path'
 
 export async function getAppVersion(): Promise<string> {
@@ -9,18 +9,11 @@ export async function getAppVersion(): Promise<string> {
       'docs',
       'app-documentation.md',
     )
-    const content = await fs.readFile(docPath, 'utf-8')
-
-    // Extract version using regex
-    const versionMatch = content.match(/Current Version: (v\d+\.\d+\.\d+)/)
-    if (versionMatch && versionMatch[1]) {
-      return versionMatch[1]
-    }
-
-    // Fallback version if not found
-    return 'v0.4.6'
+    const content = readFileSync(docPath, 'utf8')
+    const versionMatch = content.match(/Current Version: (v[\d.]+)/)
+    return versionMatch ? versionMatch[1] : 'Version unknown'
   } catch (error) {
     console.error('Error reading version:', error)
-    return 'v0.4.6'
+    return 'Version unknown'
   }
 }

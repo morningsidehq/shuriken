@@ -1,33 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  _: NextRequest,
+  { params }: { params: { jobId: string } },
+) {
   try {
-    const { jobId } = await request.json()
-
-    if (!jobId) {
-      return NextResponse.json({ error: 'Job ID is required' }, { status: 400 })
-    }
+    const jobId = await params.jobId
+    console.log('[Server] Chunking text for job:', jobId)
 
     const response = await fetch(
       `http://143.198.22.202:8000/api/v1/chunk-text/${jobId}`,
       {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           Authorization:
             'Basic ' +
             Buffer.from(
               `${process.env.API_USERNAME}:${process.env.API_PASSWORD}`,
             ).toString('base64'),
-          'Content-Type': 'application/json',
         },
       },
     )
 
     if (!response.ok) {
-      throw new Error(`Chunking API responded with status: ${response.status}`)
+      const errorText = await response.text()
+      console.error('[Server] FastAPI response error:', {
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: errorText,
+      })
+      throw new Error(`API Error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
+    console.log('[Server] Chunk text response:', data)
     return NextResponse.json(data)
   } catch (error) {
     console.error('[Server] Chunk text error:', error)

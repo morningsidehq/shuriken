@@ -1,63 +1,145 @@
-import { createBrowserClient } from '@/utils/supabase'
-
-interface ClassificationData {
-  document_type: string
-  agency: string
-  date_created: string
-  tags: string[]
-  description: string
-  external_object_urls: string[]
-  entities: string[]
-  title: string
-  addresses: string[]
-  taxmap_plat_ids: string[]
-}
-
-interface MetadataData {
-  // Define metadata structure
-  file_size: number
-  page_count: number
-  created_date: string
-  modified_date: string
-  author?: string
-  // Add other metadata fields
-}
-
 interface ProcessingResponse {
   job_id: string
   status: string
 }
 
-export async function processDocument(file: File, baseFilePath: string) {
+interface ProcessingStatus {
+  step: string
+  progress: number
+  detail?: string
+  jobId?: string
+}
+
+export async function processDocument(
+  file: File,
+  updateStatus: (status: Partial<ProcessingStatus>) => void,
+  userGroup: string,
+) {
   try {
-    // Step 1: Process PDF
-    console.log('[Client] Starting document processing for:', file.name)
+    // Step 1: Queue PDF
     const formData = new FormData()
     formData.append('file', file)
 
-    const processResponse = await fetch('/api/process-document', {
+    const queueResponse = await fetch('/api/queue-pdf', {
       method: 'POST',
       body: formData,
     })
 
-    if (!processResponse.ok) {
-      const error = await processResponse.json()
-      throw new Error(error.message || 'Failed to process PDF')
+    if (!queueResponse.ok) {
+      const error = await queueResponse.json()
+      throw new Error(error.message || 'Failed to queue PDF')
     }
 
-    const processResult: ProcessingResponse = await processResponse.json()
-    const jobId = processResult.job_id
+    const queueResult: ProcessingResponse = await queueResponse.json()
+    const jobId = queueResult.job_id
 
-    console.log('[Client] Process document response:', processResult)
+    // Step 2: Check Origin
+    updateStatus({
+      step: 'Checking Origin',
+      progress: 20,
+      detail: 'Determining document origin...',
+      jobId,
+    })
 
-    // Step 2: Chunk the text
-    console.log('[Client] Starting text chunking for job:', jobId)
-    const chunkResponse = await fetch('/api/chunk-text', {
+    const originResponse = await fetch(`/api/check-origin/${jobId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ jobId }),
+    })
+
+    if (!originResponse.ok) {
+      const error = await originResponse.json()
+      throw new Error(error.message || 'Failed to check origin')
+    }
+
+    const originResult = await originResponse.json()
+    const isDigital = originResult.origin === 'digital'
+
+    // Step 3: Process based on origin
+    if (isDigital) {
+      updateStatus({
+        step: 'Extracting Text',
+        progress: 40,
+        detail: 'Extracting text from digital PDF...',
+        jobId,
+      })
+
+      const textResponse = await fetch(`/api/pdf-to-text/${jobId}`, {
+        method: 'POST',
+      })
+
+      if (!textResponse.ok) {
+        const error = await textResponse.json()
+        throw new Error(error.message || 'Failed to extract text from PDF')
+      }
+    } else {
+      updateStatus({
+        step: 'Converting PDF to Images',
+        progress: 40,
+        detail: 'Converting scanned PDF to images...',
+        jobId,
+      })
+
+      const imageResponse = await fetch(`/api/pdf2image/${jobId}`, {
+        method: 'POST',
+      })
+
+      if (!imageResponse.ok) {
+        const error = await imageResponse.json()
+        throw new Error(error.message || 'Failed to convert PDF to images')
+      }
+
+      updateStatus({
+        step: 'Performing OCR',
+        progress: 60,
+        detail: 'Extracting text from images...',
+        jobId,
+      })
+
+      const ocrResponse = await fetch(`/api/ocr/${jobId}`, {
+        method: 'POST',
+      })
+
+      if (!ocrResponse.ok) {
+        const error = await ocrResponse.json()
+        throw new Error(error.message || 'Failed to perform OCR')
+      }
+    }
+
+    // Step 4: Classify Document
+    updateStatus({
+      step: 'Classifying Document',
+      progress: 70,
+      detail: 'Classifying document content...',
+      jobId,
+    })
+
+    const classifyResponse = await fetch(`/api/classify/${jobId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_group: userGroup,
+      }),
+    })
+
+    if (!classifyResponse.ok) {
+      const error = await classifyResponse.json()
+      throw new Error(error.message || 'Failed to classify document')
+    }
+
+    // Step 5: Chunk the text
+    updateStatus({
+      step: 'Chunking Text',
+      progress: 75,
+      detail: 'Breaking down document into analyzable segments...',
+      jobId,
+    })
+
+    const chunkResponse = await fetch(`/api/chunk-text/${jobId}`, {
+      method: 'POST',
     })
 
     if (!chunkResponse.ok) {
@@ -65,30 +147,86 @@ export async function processDocument(file: File, baseFilePath: string) {
       throw new Error(error.message || 'Failed to chunk text')
     }
 
-    const chunkResult = await chunkResponse.json()
-    console.log('[Client] Chunk text response:', chunkResult)
-
-    // Step 3: Upload record
-    console.log('[Client] Starting record upload for job:', jobId)
-    const uploadResponse = await fetch('/api/upload-record', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        jobId,
-        baseFilePath,
-      }),
+    // Step 5.5: Upload to Supabase
+    updateStatus({
+      step: 'Uploading to Supabase',
+      progress: 80,
+      detail: 'Storing document in database...',
+      jobId,
     })
 
-    const uploadResult = await uploadResponse.json()
-    console.log('[Client] Upload record response:', uploadResult)
+    const uploadToSupabaseResponse = await fetch(
+      `/api/upload-record/${jobId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_group: userGroup,
+        }),
+      },
+    )
 
-    if (!uploadResponse.ok) {
-      throw new Error(uploadResult.error || 'Failed to upload record')
+    if (!uploadToSupabaseResponse.ok) {
+      const error = await uploadToSupabaseResponse.json()
+      throw new Error(error.message || 'Failed to upload to Supabase')
     }
 
-    return uploadResult
+    await uploadToSupabaseResponse.json() // Wait for completion
+
+    // Step 6: Generate embeddings
+    updateStatus({
+      step: 'Generating Embeddings',
+      progress: 85,
+      detail: 'Creating semantic embeddings for search...',
+      jobId,
+    })
+
+    const embeddingsResponse = await fetch(
+      `/api/generate-embeddings/${jobId}`,
+      {
+        method: 'POST',
+      },
+    )
+
+    if (!embeddingsResponse.ok) {
+      const error = await embeddingsResponse.json()
+      throw new Error(error.message || 'Failed to generate embeddings')
+    }
+
+    // Step 7: Upload embeddings
+    updateStatus({
+      step: 'Uploading Embeddings',
+      progress: 95,
+      detail: 'Storing embeddings for search...',
+      jobId,
+    })
+
+    const uploadEmbeddingsResponse = await fetch(
+      `/api/upload-embeddings/${jobId}?user_group=${userGroup}`,
+      { method: 'POST' },
+    )
+
+    if (!uploadEmbeddingsResponse.ok) {
+      const error = await uploadEmbeddingsResponse.json()
+      throw new Error(error.message || 'Failed to upload embeddings')
+    }
+
+    const finalResult = await uploadEmbeddingsResponse.json()
+
+    // After successful embeddings upload
+    const metadataResponse = await fetch(
+      `/api/update-embeddings-metadata/${jobId}?user_group=${userGroup}`,
+      { method: 'POST' },
+    )
+
+    if (!metadataResponse.ok) {
+      const error = await metadataResponse.json()
+      throw new Error(error.message || 'Failed to update embeddings metadata')
+    }
+
+    return { ...finalResult, jobId }
   } catch (error: any) {
     console.error('[Client] Document processing error:', error)
     throw error

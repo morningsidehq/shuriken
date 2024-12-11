@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { createBrowserClient } from '@/utils/supabase'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
@@ -9,40 +8,38 @@ import { Upload } from 'lucide-react'
 import { processDocument } from '@/utils/documentProcessing'
 
 interface FileUploaderProps {
-  userGroup: string
   className?: string
   onFileSelect?: (file: File | null) => void
   showUploadButton?: boolean
+  userGroup: string
+  userId: string
 }
 
-const API_BASE_URL = 'http://143.198.22.202:8000'
-const API_ENDPOINTS = {
-  classify: '/api/v1/blue_ribband',
-  chunkText: '/api/v1/chunk_text',
-  uploadRecord: '/api/v1/upload_record',
-}
-
-type APIErrorResponse = {
+interface ProcessingStatus {
+  step: string
+  progress: number
   detail?: string
-  error?: string
-  message?: string
-  code?: string
-  status?: number
+  jobId?: string
 }
 
 export default function FileUploader({
-  userGroup,
   className,
   onFileSelect,
   showUploadButton = true,
+  userGroup,
 }: FileUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const [status, setStatus] = useState<ProcessingStatus>({
+    step: '',
+    progress: 0,
+  })
   const [error, setError] = useState<string | null>(null)
-  const [processingStep, setProcessingStep] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const supabase = createBrowserClient()
+
+  const updateStatus = (newStatus: Partial<ProcessingStatus>) => {
+    setStatus((prev) => ({ ...prev, ...newStatus }))
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null)
@@ -55,7 +52,7 @@ export default function FileUploader({
         return
       }
 
-      const MAX_FILE_SIZE = 10 * 1024 * 1024
+      const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
       if (file.size > MAX_FILE_SIZE) {
         setError('File size must be less than 10MB')
         e.target.value = ''
@@ -70,39 +67,6 @@ export default function FileUploader({
     }
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
-    const file = e.dataTransfer.files[0]
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        setError('Please select a PDF file')
-        return
-      }
-
-      const MAX_FILE_SIZE = 10 * 1024 * 1024
-      if (file.size > MAX_FILE_SIZE) {
-        setError('File size must be less than 10MB')
-        return
-      }
-
-      setSelectedFile(file)
-      onFileSelect?.(file)
-    }
-  }
-
-  const generateFilePath = (fileName: string, userGroup: string) => {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-    const sanitizedFileName = fileName.replace('.pdf', '')
-    return `${userGroup}/${sanitizedFileName}_${timestamp}`
-  }
-
   const handleUpload = async () => {
     if (!selectedFile) {
       setError('Please select a PDF file')
@@ -112,20 +76,31 @@ export default function FileUploader({
     try {
       setUploading(true)
       setError(null)
-      setUploadProgress(0)
 
-      const baseFilePath = generateFilePath(selectedFile.name, userGroup)
+      const processResult = await processDocument(
+        selectedFile,
+        updateStatus,
+        userGroup,
+      )
 
-      setProcessingStep('Processing PDF...')
-      setUploadProgress(25)
+      updateStatus({
+        step: 'Complete',
+        progress: 100,
+        detail: 'Document successfully processed and uploaded',
+        jobId: processResult.jobId,
+      })
 
-      await processDocument(selectedFile, baseFilePath)
-
-      setUploadProgress(100)
-      setProcessingStep('Upload complete!')
+      // Clear the form
+      setSelectedFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (error: any) {
-      setError(error.message || 'Failed to upload file')
-      setProcessingStep('Upload failed')
+      console.error('Upload error:', error)
+      setError(error.message || 'Failed to process document')
+      updateStatus({
+        step: 'Error',
+        progress: 0,
+        detail: error.message,
+      })
     } finally {
       setUploading(false)
     }
@@ -142,8 +117,6 @@ export default function FileUploader({
       <div
         className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 transition-colors hover:border-gray-400"
         onClick={() => fileInputRef.current?.click()}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
       >
         <Upload className="mb-4 h-12 w-12 text-gray-400" />
         <p className="text-sm text-gray-600">
@@ -168,10 +141,15 @@ export default function FileUploader({
             </div>
           </div>
           {uploading && (
-            <>
-              <Progress value={uploadProgress} className="w-full" />
-              <p className="text-sm text-gray-600">{processingStep}</p>
-            </>
+            <div className="space-y-2">
+              <Progress value={status.progress} className="w-full" />
+              <p className="text-sm text-gray-600">
+                {status.step}: {status.detail}
+              </p>
+              {status.jobId && (
+                <p className="text-xs text-gray-500">Job ID: {status.jobId}</p>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -181,13 +159,9 @@ export default function FileUploader({
           type="button"
           onClick={handleUpload}
           disabled={!selectedFile || uploading}
-          className={`max-w-[300px] rounded px-4 py-2 ${
-            !selectedFile || uploading
-              ? 'cursor-not-allowed bg-gray-300 text-gray-500'
-              : 'bg-blue-900 text-white hover:bg-blue-700'
-          }`}
+          className="w-full max-w-[300px]"
         >
-          {uploading ? 'Uploading...' : 'Upload PDF'}
+          {uploading ? 'Processing...' : 'Upload PDF'}
         </Button>
       )}
     </div>

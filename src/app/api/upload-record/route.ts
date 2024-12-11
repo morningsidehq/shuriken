@@ -5,10 +5,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('[Server] Upload Record - Request body:', body)
 
-    const { jobId, baseFilePath } = body
+    const { jobId, baseFilePath, user_group } = body
 
-    if (!jobId || !baseFilePath) {
-      throw new Error('Missing required parameters: jobId or baseFilePath')
+    if (!jobId || !baseFilePath || !user_group) {
+      throw new Error(
+        'Missing required parameters: jobId, baseFilePath, or user_group',
+      )
     }
 
     const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/upload-record/${jobId}`
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         base_file_path: baseFilePath,
         bucket_name: 'user_objects',
+        user_group: user_group,
       }),
     })
 

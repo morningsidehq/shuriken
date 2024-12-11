@@ -1,10 +1,64 @@
 # Constance Application Documentation
 
-Current Version: v0.5.8
+Current Version: v0.6.4
 
-Version Notes: Fixed issue with user management page. Added New User functionality for Agency Admins. Added group confirmation for new users.
-
+Version Notes: Enhanced document processing pipeline with improved user group handling, API integration, and embeddings metadata management.
 ## Version History
+
+- v0.6:
+  - v0.6.4: Enhanced document processing pipeline
+    - Implemented comprehensive document processing workflow with FastAPI integration
+    - Added user group and user ID tracking throughout processing pipeline
+    - Enhanced error handling and status reporting
+    - Key improvements:
+      * Document Origin Detection:
+        - Automatic detection of digital vs scanned documents
+        - Optimized processing path selection based on document type
+      * Processing Pipeline:
+        - Queue management with job ID tracking
+        - Digital document text extraction
+        - Scanned document OCR processing
+        - Document classification with user group context
+        - Text chunking for improved analysis
+        - Embeddings generation with metadata
+      * API Integration:
+        - Secure FastAPI endpoint connections
+        - Basic authentication implementation
+        - Comprehensive error handling and logging
+      * User Context:
+        - User group propagation throughout pipeline
+        - Embeddings metadata association with user context
+        - Group-based access control for processed documents
+      * Status Tracking:
+        - Real-time processing status updates
+        - Detailed progress reporting
+        - Error state handling and recovery
+    - Technical Implementation:
+      * Document Processing Flow:
+        - Initial PDF queuing with user context
+        - Origin detection (digital/scanned)
+        - Text extraction (PDF-to-text or OCR)
+        - Classification with user group context
+        - Text chunking for analysis
+        - Embeddings generation
+        - Metadata association
+      * API Integration Points:
+        - Queue PDF endpoint
+        - Origin check endpoint
+        - Text extraction endpoints
+        - Classification endpoint
+        - Chunking endpoint
+        - Embeddings generation endpoint
+        - Upload endpoints
+      * Error Handling:
+        - Comprehensive try-catch blocks
+        - Detailed error logging
+        - User-friendly error messages
+        - Recovery mechanisms
+      * Security:
+        - Basic authentication for API calls
+        - User group validation
+        - Access control enforcement
 
 - v0.5:
   - v0.5.8: Fixed issue with user management page. Added New User functionality for Agency Admins. Added group confirmation for new users.
@@ -107,13 +161,37 @@ Components:
 
 ##### Intake System (`src/app/upload/page.tsx`)
 - Redesigned upload interface using shadcn/ui components
-- Improved drag-and-drop functionality
+- Improved drag-and-drop functionality with visual feedback
 - Progress tracking with shadcn/ui Progress component
+- Multi-file upload support
+- Automatic metadata extraction
+- Real-time validation and error handling
 
 Components:
-- **FileUploadZone**: Enhanced upload area with visual feedback
-- **UploadProgress**: New progress tracking interface
-- **FileList**: Improved file list display using shadcn/ui components
+- **FileUploadZone**: Enhanced upload area with:
+  - Visual feedback during drag operations
+  - File type validation
+  - Size limit enforcement
+  - Multiple file handling
+- **UploadProgress**: 
+  - Real-time progress tracking interface
+  - Individual file progress bars
+  - Overall upload status
+  - Error state handling
+- **FileList**: 
+  - Improved file list display using shadcn/ui components
+  - File metadata preview
+  - Delete/remove functionality
+  - Upload status indicators
+- **MetadataEditor**:
+  - Automatic metadata extraction
+  - Manual metadata editing capabilities
+  - Validation rules enforcement
+- **UploadQueue**:
+  - Manages multiple file uploads
+  - Prioritization options
+  - Retry failed uploads
+  - Batch operations support
 
 #### 6. Actions Management (`src/app/actions/page.tsx`)
 - Task and action management interface
@@ -439,3 +517,4 @@ Components:
 - Manages user role assignments
 - Controls agency group associations
 - Implements data validation and sanitization
+

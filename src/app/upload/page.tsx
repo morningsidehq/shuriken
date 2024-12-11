@@ -63,7 +63,7 @@ export default async function Upload() {
             </h2>
           </CardHeader>
           <CardContent>
-            <FileUploader userGroup={userGroup} />
+            <FileUploader userGroup={userGroup} userId={user.id} />
           </CardContent>
         </Card>
       </div>

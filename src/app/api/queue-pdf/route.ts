@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
-  const formData = await request.formData()
-
   try {
+    const formData = await request.formData()
+    const file = formData.get('file')
+    const userGroup = formData.get('user_group')
+
+    // Create new FormData to send to FastAPI
+    const apiFormData = new FormData()
+    apiFormData.append('file', file as Blob)
+    apiFormData.append('user_group', userGroup as string)
+
     const response = await fetch(
-      'http://143.198.22.202:8000/api/v1/blue-ribband',
+      'http://143.198.22.202:8000/api/v1/queue-pdf',
       {
         method: 'POST',
         headers: {
@@ -15,7 +22,7 @@ export async function POST(request: NextRequest) {
               `${process.env.API_USERNAME}:${process.env.API_PASSWORD}`,
             ).toString('base64'),
         },
-        body: formData,
+        body: apiFormData,
       },
     )
 
@@ -26,10 +33,7 @@ export async function POST(request: NextRequest) {
     const data = await response.json()
     return NextResponse.json(data)
   } catch (error) {
-    console.error('Processing error:', error)
-    return NextResponse.json(
-      { error: 'Failed to process document' },
-      { status: 500 },
-    )
+    console.error('Queue PDF error:', error)
+    return NextResponse.json({ error: 'Failed to queue PDF' }, { status: 500 })
   }
 }
