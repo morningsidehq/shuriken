@@ -1,6 +1,8 @@
 import React from 'react'
 import { getAppVersion } from '@/utils/getAppVersion'
 
+export const APP_VERSION = 'v0.7.0'
+
 const Footer = async () => {
   const version = await getAppVersion()
 

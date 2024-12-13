@@ -167,10 +167,17 @@ export default async function DashboardPage() {
             <div className="absolute inset-0 flex gap-1 opacity-0 transition-all duration-300 group-hover:opacity-100">
               <Link
                 href="/assistant/search"
-                className="flex w-full flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="flex w-1/2 flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 <FaSearch className="mb-2 h-6 w-6" />
                 <h3 className="text-sm font-semibold">Search</h3>
+              </Link>
+              <Link
+                href="/assistant/create"
+                className="flex w-1/2 flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <FaFileUpload className="mb-2 h-6 w-6" />
+                <h3 className="text-sm font-semibold">Create</h3>
               </Link>
             </div>
           </div>

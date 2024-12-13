@@ -12,17 +12,25 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Pencil } from 'lucide-react'
 
-interface AddAgencyUserModalProps {
+interface EditAgencyUserModalProps {
+  user: {
+    id: string
+    email: string
+    first_name: string
+    last_name: string
+    phone?: string
+  }
   userGroup: string
-  onUserAdded: () => void
+  onUserUpdated: () => void
 }
 
-export default function AddAgencyUserModal({
+export default function EditAgencyUserModal({
+  user,
   userGroup,
-  onUserAdded,
-}: AddAgencyUserModalProps) {
+  onUserUpdated,
+}: EditAgencyUserModalProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const supabase = createBrowserClient()
@@ -32,57 +40,40 @@ export default function AddAgencyUserModal({
     setLoading(true)
 
     const formData = new FormData(e.currentTarget)
-    const email = String(formData.get('email'))
     const firstName = String(formData.get('firstName'))
     const lastName = String(formData.get('lastName'))
     const phone = String(formData.get('phone'))
 
-    // Generate a temporary password
-    const tempPassword = Math.random().toString(36).slice(-12)
-
     try {
-      // Create the user account in auth.users
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password: tempPassword,
+      // Update auth.users metadata and phone
+      const { error: authError } = await supabase.auth.updateUser({
         phone,
-        options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            user_group: userGroup,
-          },
+        data: {
+          first_name: firstName,
+          last_name: lastName,
         },
       })
 
       if (authError) throw authError
 
-      // Insert into public.profiles if user was created
-      if (authData.user) {
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: authData.user.id,
+      // Update public.profiles
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
           first_name: firstName,
           last_name: lastName,
-          email,
           phone,
-          user_role: 8, // Default to Agency User
-          user_group: userGroup,
-          confirmed: true, // Auto-confirm since added by admin
         })
+        .eq('id', user.id)
+        .eq('user_group', userGroup)
 
-        if (profileError) {
-          // Clean up auth user if profile creation fails
-          await supabase.auth.admin.deleteUser(authData.user.id)
-          throw profileError
-        }
-      }
+      if (profileError) throw profileError
 
       setOpen(false)
-      onUserAdded()
+      onUserUpdated()
     } catch (error) {
-      console.error('Error adding user:', error)
-      // Add toast notification here
+      console.error('Error updating user:', error)
+      // You might want to add toast notification here
     } finally {
       setLoading(false)
     }
@@ -91,20 +82,32 @@ export default function AddAgencyUserModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add User</Button>
+        <Button variant="ghost" size="sm">
+          <Pencil className="h-4 w-4" />
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New User</DialogTitle>
+          <DialogTitle>Edit User</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="firstName">First Name</Label>
-            <Input id="firstName" name="firstName" required />
+            <Input
+              id="firstName"
+              name="firstName"
+              defaultValue={user.first_name || ''}
+              required
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="lastName">Last Name</Label>
-            <Input id="lastName" name="lastName" required />
+            <Input
+              id="lastName"
+              name="lastName"
+              defaultValue={user.last_name || ''}
+              required
+            />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
@@ -112,8 +115,8 @@ export default function AddAgencyUserModal({
               id="email"
               name="email"
               type="email"
-              placeholder="user@example.com"
-              required
+              value={user.email || ''}
+              disabled
             />
           </div>
           <div className="grid gap-2">
@@ -122,18 +125,18 @@ export default function AddAgencyUserModal({
               id="phone"
               name="phone"
               type="tel"
+              defaultValue={user.phone || ''}
               placeholder="(123) 456-7890"
-              required
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Adding User...
+                Updating User...
               </>
             ) : (
-              'Add User'
+              'Update User'
             )}
           </Button>
         </form>

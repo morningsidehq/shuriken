@@ -14,6 +14,18 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Loader2 } from 'lucide-react'
 import AddAgencyUserModal from './AddAgencyUserModal'
+import { Trash2 } from 'lucide-react'
+import EditAgencyUserModal from './EditAgencyUserModal'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface AgencyUser {
   id: string
@@ -22,6 +34,7 @@ interface AgencyUser {
   last_name: string
   confirmed: boolean
   user_group: string
+  phone?: string
 }
 
 export default function AgencyUserManagement({
@@ -32,6 +45,7 @@ export default function AgencyUserManagement({
   const [users, setUsers] = useState<AgencyUser[]>([])
   const [loading, setLoading] = useState(true)
   const [confirmingUser, setConfirmingUser] = useState<string | null>(null)
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null)
   const supabase = createBrowserClient()
 
   const fetchUsers = useCallback(async () => {
@@ -48,10 +62,12 @@ export default function AgencyUserManagement({
           first_name,
           last_name,
           confirmed,
-          user_group
+          user_group,
+          phone
         `,
         )
         .eq('user_group', userGroup)
+        .not('disabled', 'eq', true)
 
       if (error) {
         console.error('Supabase error details:', error)
@@ -89,6 +105,36 @@ export default function AgencyUserManagement({
       console.error('Error confirming user:', error)
     } finally {
       setConfirmingUser(null)
+    }
+  }
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      // Delete the profile first
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId)
+        .eq('user_group', userGroup)
+
+      if (profileError) throw profileError
+
+      // Instead of using admin.deleteUser, we'll disable the user's access
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          disabled: true,
+          deleted_at: new Date().toISOString(),
+        },
+      })
+
+      if (authError) throw authError
+
+      await fetchUsers()
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      // Add toast notification here
+    } finally {
+      setDeleteUserId(null)
     }
   }
 
@@ -145,29 +191,67 @@ export default function AgencyUserManagement({
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {!user.confirmed && (
+                  <div className="flex space-x-2">
+                    {!user.confirmed && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleConfirmUser(user.id)}
+                        disabled={confirmingUser === user.id}
+                      >
+                        {confirmingUser === user.id ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Confirming...
+                          </>
+                        ) : (
+                          'Confirm User'
+                        )}
+                      </Button>
+                    )}
+                    <EditAgencyUserModal
+                      user={user}
+                      userGroup={userGroup}
+                      onUserUpdated={fetchUsers}
+                    />
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => handleConfirmUser(user.id)}
-                      disabled={confirmingUser === user.id}
+                      onClick={() => setDeleteUserId(user.id)}
                     >
-                      {confirmingUser === user.id ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Confirming...
-                        </>
-                      ) : (
-                        'Confirm User'
-                      )}
+                      <Trash2 className="h-4 w-4" />
                     </Button>
-                  )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       )}
+
+      <AlertDialog
+        open={!!deleteUserId}
+        onOpenChange={() => setDeleteUserId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              user account and remove their data from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteUserId && handleDeleteUser(deleteUserId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

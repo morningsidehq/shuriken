@@ -1,19 +1,10 @@
-import { readFileSync } from 'fs'
-import path from 'path'
+const APP_VERSION = 'v0.6.6'
 
 export async function getAppVersion(): Promise<string> {
   try {
-    const docPath = path.join(
-      process.cwd(),
-      'src',
-      'docs',
-      'app-documentation.md',
-    )
-    const content = readFileSync(docPath, 'utf8')
-    const versionMatch = content.match(/Current Version: (v[\d.]+)/)
-    return versionMatch ? versionMatch[1] : 'Version unknown'
+    return APP_VERSION
   } catch (error) {
-    console.error('Error reading version:', error)
+    console.error('Error getting version:', error)
     return 'Version unknown'
   }
 }

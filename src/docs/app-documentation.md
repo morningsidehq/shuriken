@@ -1,10 +1,20 @@
 # Constance Application Documentation
 
-Current Version: v0.6.6
+Current Version: v0.7.0
 
-Version Notes: Added "View Full Doc" functionality.
+Version Notes: Added Document Generation functionality with multi-tab interface, real-time document preview, and format selection.
 
 ## Version History
+
+- v0.7:
+  - v0.7.0: Added Document Generation System
+    - Implemented multi-tab document generation interface
+    - Added support for multiple document formats (PDF, DOCX, PPTX, CSV)
+    - Real-time document preview and download capabilities
+    - Context-aware document generation with search integration
+    - User group and date-specific document creation
+    - Enhanced error handling and loading states
+    - Document history tracking per generation session
 
 - v0.6:
   - v0.6.6: Added "View Full Doc" functionality
@@ -350,6 +360,55 @@ Database Functions:
   - Configurable similarity thresholds
   - Returns ranked results with metadata
   - Supports content preview extraction
+
+#### 11. Document Generation (`src/app/assistant/create/page.tsx`)
+- Protected route requiring authentication
+- Advanced document generation interface with:
+  - Multi-tab generation sessions
+  - Multiple output format support
+  - Context-aware document creation
+  - Real-time preview capabilities
+
+Components:
+- **DocumentGenerationForm**: Main generation interface
+  - Form validation using Zod schema
+  - Multiple format support:
+    - Word Documents (.docx)
+    - PDF Documents (.pdf)
+    - PowerPoint Presentations (.pptx)
+    - CSV Spreadsheets (.csv)
+  - Document types:
+    - Memos, Proposals, Invoices
+    - Statements of Work (SOW)
+    - Reports, Policy Documents
+    - Letters of Intent (LOI)
+    - Memorandums of Understanding (MOU)
+    - Certificates, Permits
+    - Work Orders
+    - Press Briefings
+  - Context-based generation with search integration
+  - Document date/time specification
+  - Real-time document preview
+  - Download capabilities
+  - Session history tracking
+
+Features:
+- Multi-tab Interface:
+  - Independent generation sessions
+  - Document history per tab
+  - Dynamic tab creation
+- Document Preview:
+  - Built-in PDF viewer
+  - Format-specific handling
+  - Download options for all formats
+- Security:
+  - User group integration
+  - User ID tracking
+  - Access control enforcement
+- Error Handling:
+  - Form validation
+  - Generation error feedback
+  - Loading states
 
 ### Shared Components
 

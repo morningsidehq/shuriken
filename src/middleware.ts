@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
     const { supabase, response } = createMiddlewareClient(request)
     const currentPath = request.nextUrl.pathname
 
-    // Add API routes to PUBLIC_ROUTES
+    // Check if it's a public route first
     if (
       PUBLIC_ROUTES.some((route) => currentPath.startsWith(route)) ||
       currentPath.startsWith('/_next') ||
@@ -68,45 +68,35 @@ export async function middleware(request: NextRequest) {
       return response
     }
 
+    // Get session
     const {
       data: { session },
-      error,
     } = await supabase.auth.getSession()
 
-    // Set session cookie even for public routes
+    // Always set session cookie if exists
     if (session) {
       response.cookies.set('supabase-auth-token', JSON.stringify(session))
     }
 
-    // Only redirect if not on a public route
-    if (!session && !PUBLIC_ROUTES.includes(currentPath)) {
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirectTo', currentPath)
-      return NextResponse.redirect(loginUrl)
+    // Don't redirect on public routes regardless of auth state
+    if (PUBLIC_ROUTES.includes(currentPath)) {
+      return response
     }
 
-    // Don't redirect on auth errors for public routes
-    if (error && !PUBLIC_ROUTES.includes(currentPath)) {
-      console.error('Auth error:', error)
+    // Redirect to login if no session and not on a public route
+    if (!session) {
       const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set(
-        'message',
-        'Session expired, please log in again.',
-      )
+      loginUrl.searchParams.set('redirectTo', currentPath)
       return NextResponse.redirect(loginUrl)
     }
 
     return response
   } catch (e) {
     console.error('Middleware error:', e)
-    // Only redirect to login on critical errors if not on a public route
+    // Only redirect on critical errors if not on a public route
     const currentPath = request.nextUrl.pathname
     if (!PUBLIC_ROUTES.includes(currentPath)) {
       const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set(
-        'message',
-        'An error occurred. Please try again.',
-      )
       return NextResponse.redirect(loginUrl)
     }
     return NextResponse.next()

@@ -6,6 +6,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
 import { Upload } from 'lucide-react'
 import { processDocument } from '@/utils/documentProcessing'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface FileUploaderProps {
   className?: string
@@ -29,6 +31,7 @@ export default function FileUploader({
   userGroup,
 }: FileUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [documentName, setDocumentName] = useState('')
   const [uploading, setUploading] = useState(false)
   const [status, setStatus] = useState<ProcessingStatus>({
     step: '',
@@ -60,9 +63,14 @@ export default function FileUploader({
       }
 
       setSelectedFile(file)
+      // Set default document name from file name (without extension)
+      setDocumentName(
+        file.name.replace('.pdf', '').replace(/[^a-zA-Z0-9-_]/g, '_'),
+      )
       onFileSelect?.(file)
     } else {
       setSelectedFile(null)
+      setDocumentName('')
       onFileSelect?.(null)
     }
   }
@@ -70,6 +78,11 @@ export default function FileUploader({
   const handleUpload = async () => {
     if (!selectedFile) {
       setError('Please select a PDF file')
+      return
+    }
+
+    if (!documentName.trim()) {
+      setError('Please provide a document name')
       return
     }
 
@@ -81,6 +94,7 @@ export default function FileUploader({
         selectedFile,
         updateStatus,
         userGroup,
+        documentName.trim(), // Pass the document name to the process
       )
 
       updateStatus({
@@ -92,6 +106,7 @@ export default function FileUploader({
 
       // Clear the form
       setSelectedFile(null)
+      setDocumentName('')
       if (fileInputRef.current) fileInputRef.current.value = ''
     } catch (error: any) {
       console.error('Upload error:', error)
@@ -134,12 +149,25 @@ export default function FileUploader({
       />
 
       {selectedFile && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
             <div className="flex-1 rounded border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500">
               {selectedFile.name}
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="documentName">Document Name</Label>
+            <Input
+              id="documentName"
+              type="text"
+              value={documentName}
+              onChange={(e) => setDocumentName(e.target.value)}
+              placeholder="Enter document name"
+              disabled={uploading}
+            />
+          </div>
+
           {uploading && (
             <div className="space-y-2">
               <Progress value={status.progress} className="w-full" />
@@ -158,7 +186,7 @@ export default function FileUploader({
         <Button
           type="button"
           onClick={handleUpload}
-          disabled={!selectedFile || uploading}
+          disabled={!selectedFile || !documentName.trim() || uploading}
           className="w-full max-w-[300px]"
         >
           {uploading ? 'Processing...' : 'Upload PDF'}

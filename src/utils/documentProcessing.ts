@@ -14,6 +14,7 @@ export async function processDocument(
   file: File,
   updateStatus: (status: Partial<ProcessingStatus>) => void,
   userGroup: string,
+  documentName: string,
 ) {
   try {
     // Step 1: Queue PDF
@@ -224,6 +225,31 @@ export async function processDocument(
     if (!metadataResponse.ok) {
       const error = await metadataResponse.json()
       throw new Error(error.message || 'Failed to update embeddings metadata')
+    }
+
+    // After successful metadata update, rename the folder
+    updateStatus({
+      step: 'Finalizing',
+      progress: 98,
+      detail: 'Organizing document storage...',
+      jobId,
+    })
+
+    const renameResponse = await fetch(`/api/rename-document/${jobId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        new_name: documentName,
+        user_group: userGroup,
+      }),
+    })
+
+    if (!renameResponse.ok) {
+      const error = await renameResponse.json()
+      console.warn('Folder rename warning:', error)
+      // Don't throw error here - continue with processing
     }
 
     return { ...finalResult, jobId }

@@ -86,22 +86,14 @@ const findCommonWords = (
     .slice(0, 10) // Top 10 words
 }
 
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 B'
-  const k = 1024
-  const sizes = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`
-}
-
 const generateResultsSummary = (results: SearchResult[]) => {
   if (!results.length) return null
 
   const avgSimilarity =
     results.reduce((sum, r) => sum + r.similarity, 0) / results.length
 
-  // Calculate total size from the text content
-  const totalSize = results.reduce(
+  // Calculate total content length
+  const totalChars = results.reduce(
     (sum, r) => sum + (r.content?.length || 0),
     0,
   )
@@ -109,26 +101,19 @@ const generateResultsSummary = (results: SearchResult[]) => {
   // Find common words
   const commonWords = findCommonWords(results)
 
-  // Group documents by folder
-  const clusters = results.reduce(
-    (acc, doc) => {
-      const folder = doc.file_path.split('/')[1] || 'ungrouped'
-      if (!acc[folder]) acc[folder] = []
-      acc[folder].push(doc)
-      return acc
-    },
-    {} as Record<string, SearchResult[]>,
-  )
+  // Group by similarity ranges instead of folders
+  const similarityRanges = {
+    high: results.filter((r) => r.similarity >= 0.8),
+    medium: results.filter((r) => r.similarity >= 0.6 && r.similarity < 0.8),
+    low: results.filter((r) => r.similarity < 0.6),
+  }
 
   return {
     count: results.length,
     avgSimilarity,
-    totalSize,
+    totalChars,
     commonWords,
-    clusters: Object.entries(clusters).map(([name, docs]) => ({
-      cluster: name,
-      docs,
-    })),
+    similarityRanges,
   }
 }
 
@@ -178,9 +163,10 @@ const SummaryPanel = ({
             <div className="flex-1">
               <h3 className="mb-2 font-medium">Search Analysis</h3>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                I found {summary.count} matching documents with an average
-                similarity of {(summary.avgSimilarity * 100).toFixed(2)}%. The
-                total content size is {formatFileSize(summary.totalSize)}.
+                Found {summary.count} relevant text segments with{' '}
+                {(summary.avgSimilarity * 100).toFixed(2)}% average semantic
+                similarity. Total content: {summary.totalChars.toLocaleString()}{' '}
+                characters.
               </p>
             </div>
             <Button
@@ -243,21 +229,30 @@ const SummaryPanel = ({
             </div>
 
             <div>
-              <h4 className="mb-2 text-sm font-medium">Document Groups</h4>
+              <h4 className="mb-2 text-sm font-medium">
+                Similarity Distribution
+              </h4>
               <div className="space-y-3">
-                {summary.clusters.map(({ cluster, docs }) => (
-                  <div key={cluster} className="text-sm">
-                    <p className="text-muted-foreground">
-                      {cluster} contains {docs.length} related document
-                      {docs.length > 1 ? 's' : ''}:
-                    </p>
-                    <ul className="ml-4 mt-1 list-disc space-y-1 text-xs">
-                      {docs.map((d) => (
-                        <li key={d.id}>{d.file_path.split('/').pop()}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                {Object.entries(summary.similarityRanges).map(
+                  ([range, matches]) => (
+                    <div key={range} className="text-sm">
+                      <p className="text-muted-foreground">
+                        {range.charAt(0).toUpperCase() + range.slice(1)}{' '}
+                        similarity ({matches.length}):
+                      </p>
+                      <div className="ml-4 mt-1 space-y-1">
+                        {matches.map((match, idx) => (
+                          <p key={idx} className="text-xs">
+                            {match.content?.slice(0, 100)}...
+                            <span className="ml-1 text-muted-foreground">
+                              ({(match.similarity * 100).toFixed(1)}%)
+                            </span>
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           </div>
@@ -323,8 +318,21 @@ export function SemanticSearch({
     },
   })
 
-  const getOriginalPdfPath = (jobId: string, userGroupId: string) => {
-    return `${userGroupId}/${jobId}/original.pdf`
+  const getOriginalPdfPath = async (jobId: string, userGroup: string) => {
+    // Query document_embeddings to get the document_name
+    const { data, error } = await supabase
+      .from('document_embeddings')
+      .select('document_name')
+      .eq('job_id', jobId)
+      .eq('user_group', userGroup)
+      .single()
+
+    if (error || !data?.document_name) {
+      console.error('Error getting document name:', error)
+      return `${userGroup}/${jobId}/original.pdf` // fallback
+    }
+
+    return `${userGroup}/${data.document_name}/original.pdf`
   }
 
   const addNewTab = () => {
@@ -384,8 +392,11 @@ export function SemanticSearch({
       )
 
       if (searchError) {
-        console.error('Search error:', searchError)
-        throw searchError
+        console.error(
+          'Search error details:',
+          searchError.message || searchError,
+        )
+        throw new Error(searchError.message || 'Search failed')
       }
 
       // Update transform with type and correct mapping
@@ -407,8 +418,13 @@ export function SemanticSearch({
         ),
       )
     } catch (error) {
-      console.error('Search error:', error)
-      // Optionally set an error state here
+      console.error(
+        'Search error:',
+        error instanceof Error ? error.message : 'Unknown error',
+      )
+      setTabs((prev) =>
+        prev.map((t) => (t.id === tabId ? { ...t, results: [] } : t)),
+      )
     } finally {
       setLoading(false)
     }
@@ -596,8 +612,7 @@ export function SemanticSearch({
                     key={result.id}
                     className="rounded-lg border border-border bg-card p-4 shadow-sm"
                   >
-                    <div className="flex justify-between">
-                      <p className="text-sm font-medium">{result.file_path}</p>
+                    <div className="flex justify-start">
                       <p className="text-sm font-medium">
                         Similarity: {(result.similarity * 100).toFixed(2)}%
                       </p>
@@ -675,7 +690,7 @@ export function SemanticSearch({
                             onClick={async () => {
                               setSelectedResult(result)
                               try {
-                                const pdfPath = getOriginalPdfPath(
+                                const pdfPath = await getOriginalPdfPath(
                                   result.job_id.toString(),
                                   userGroup,
                                 )

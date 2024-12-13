@@ -1,7 +1,9 @@
+'use client'
+
 import Link from 'next/link'
-import { cookies } from 'next/headers'
-import { createServerClient } from '@/utils/supabase'
 import Image from 'next/image'
+import { useSupabase } from '@/providers/SupabaseProvider'
+import { useEffect, useState } from 'react'
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,36 +14,45 @@ import {
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './ThemeToggle'
-import { Search } from 'lucide-react'
+import { Search, FileText } from 'lucide-react'
 import { FaUsers } from 'react-icons/fa'
 
-export default async function Header() {
-  const cookieStore = cookies()
-  const supabase = createServerClient(cookieStore)
+interface UserData {
+  user_role: number
+}
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+function HeaderClient() {
+  const { supabase } = useSupabase()
+  const [userData, setUserData] = useState<UserData | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
-  if (error) {
-    console.error('Error fetching user:', error)
-  }
+  useEffect(() => {
+    async function loadUserData() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-  const { data: userData } = await supabase
-    .from('profiles')
-    .select('user_role')
-    .eq('id', user?.id || '')
-    .single()
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('user_role')
+          .eq('id', user.id)
+          .single()
 
-  const isAdmin = userData?.user_role === 7
+        setUserData(data)
+        setIsAdmin(data?.user_role === 7)
+      }
+    }
+
+    loadUserData()
+  }, [supabase])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <div className="mr-4 flex">
           <Link
-            href={user ? '/dashboard' : '/'}
+            href={userData ? '/dashboard' : '/'}
             className="mr-6 flex items-center space-x-2"
           >
             <Image
@@ -56,7 +67,7 @@ export default async function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          {user ? (
+          {userData ? (
             <nav className="flex items-center">
               <div className="flex space-x-2">
                 <NavigationMenu>
@@ -204,13 +215,24 @@ export default async function Header() {
                               </div>
                             </Link>
                           </li>
+                          <li>
+                            <Link
+                              href="/assistant/create"
+                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
+                            >
+                              <div className="flex items-center">
+                                <FileText className="mr-2 h-4 w-4" />
+                                Create Document
+                              </div>
+                            </Link>
+                          </li>
                         </ul>
                       </NavigationMenuContent>
                     </NavigationMenuItem>
                   </NavigationMenuList>
                 </NavigationMenu>
 
-                {user && isAdmin && (
+                {userData && isAdmin && (
                   <NavigationMenu>
                     <NavigationMenuList>
                       <NavigationMenuItem>
@@ -244,3 +266,5 @@ export default async function Header() {
     </header>
   )
 }
+
+export default HeaderClient
