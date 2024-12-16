@@ -1,11 +1,6 @@
 import React from 'react'
-import { getAppVersion } from '@/utils/getAppVersion'
 
-export const APP_VERSION = 'v0.7.0'
-
-const Footer = async () => {
-  const version = await getAppVersion()
-
+const Footer = () => {
   return (
     <footer className="border-t bg-background">
       <div className="container flex h-14 items-center justify-between px-4 md:px-6">
@@ -21,7 +16,7 @@ const Footer = async () => {
         </div>
 
         <div className="flex items-center">
-          <span className="text-sm text-muted-foreground">{version}</span>
+          <span className="text-sm text-muted-foreground">v0.7.0</span>
         </div>
       </div>
     </footer>

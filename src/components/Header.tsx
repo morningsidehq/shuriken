@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
 import { ThemeToggle } from './ThemeToggle'
-import { Search, FileText } from 'lucide-react'
 import { FaUsers } from 'react-icons/fa'
 
 interface UserData {
@@ -85,9 +84,33 @@ function HeaderClient() {
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>
-                      <Link href="/search" legacyBehavior passHref>
+                      <Link href="/assistant/search" legacyBehavior passHref>
                         <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
                           Search
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link href="/upload" legacyBehavior passHref>
+                        <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                          Upload
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  </NavigationMenuList>
+                </NavigationMenu>
+
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
+                      <Link href="/assistant/create" legacyBehavior passHref>
+                        <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                          Create
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
@@ -116,48 +139,6 @@ function HeaderClient() {
                               className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
                             >
                               Agency Records
-                            </Link>
-                          </li>
-                        </ul>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
-
-                <NavigationMenu className="mr-2">
-                  <NavigationMenuList>
-                    <NavigationMenuItem>
-                      <Link href="/analytics" legacyBehavior passHref>
-                        <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-                          Analytics
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
-
-                <NavigationMenu>
-                  <NavigationMenuList>
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
-                        Upload
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="min-w-[200px] rounded-md border border-border bg-popover p-2 shadow-md">
-                          <li>
-                            <Link
-                              href="/upload"
-                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                            >
-                              Quick Intake
-                            </Link>
-                          </li>
-                          <li>
-                            <Link
-                              href="/upload/adv_record_creation"
-                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                            >
-                              Record Creation
                             </Link>
                           </li>
                         </ul>
@@ -199,35 +180,11 @@ function HeaderClient() {
                 <NavigationMenu>
                   <NavigationMenuList>
                     <NavigationMenuItem>
-                      <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
-                        Assistant
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="min-w-[200px] rounded-md border border-border bg-popover p-2 shadow-md">
-                          <li>
-                            <Link
-                              href="/assistant/search"
-                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                            >
-                              <div className="flex items-center">
-                                <Search className="mr-2 h-4 w-4" />
-                                AI Search
-                              </div>
-                            </Link>
-                          </li>
-                          <li>
-                            <Link
-                              href="/assistant/create"
-                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                            >
-                              <div className="flex items-center">
-                                <FileText className="mr-2 h-4 w-4" />
-                                Create Document
-                              </div>
-                            </Link>
-                          </li>
-                        </ul>
-                      </NavigationMenuContent>
+                      <Link href="/analytics" legacyBehavior passHref>
+                        <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+                          Analytics
+                        </NavigationMenuLink>
+                      </Link>
                     </NavigationMenuItem>
                   </NavigationMenuList>
                 </NavigationMenu>

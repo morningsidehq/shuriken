@@ -10,14 +10,13 @@ import Link from 'next/link'
 import {
   FaFolder,
   FaSearch,
-  FaFastForward,
   FaFileUpload,
   FaPlay,
   FaGlobe,
   FaBuilding,
   FaChartBar,
-  FaRobot,
   FaUsers,
+  FaEdit,
 } from 'react-icons/fa'
 import Image from 'next/image'
 
@@ -88,7 +87,33 @@ export default async function DashboardPage() {
       {/* Navigation cards grid */}
       <div className="mt-8 flex flex-col items-center">
         <div className="grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {/* First row */}
+          {/* Search card */}
+          <Link
+            href="/assistant/search"
+            className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <FaSearch className="mb-2 h-6 w-6" />
+            <h3 className="text-sm font-semibold">Search</h3>
+          </Link>
+
+          {/* Upload card */}
+          <Link
+            href="/upload"
+            className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <FaFileUpload className="mb-2 h-6 w-6" />
+            <h3 className="text-sm font-semibold">Upload</h3>
+          </Link>
+
+          {/* Create card */}
+          <Link
+            href="/assistant/create"
+            className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <FaEdit className="mb-2 h-6 w-6" />
+            <h3 className="text-sm font-semibold">Create</h3>
+          </Link>
+
           {/* View Records card with internal options */}
           <div className="group relative h-[120px] w-[200px] border-border">
             <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-all duration-300 group-hover:opacity-0">
@@ -113,15 +138,6 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Search Records card */}
-          <Link
-            href="/search"
-            className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            <FaSearch className="mb-2 h-6 w-6" />
-            <h3 className="text-sm font-semibold">Search Records</h3>
-          </Link>
-
           {/* My Actions card */}
           <Link
             href="/actions"
@@ -129,24 +145,6 @@ export default async function DashboardPage() {
           >
             <FaPlay className="mb-2 h-6 w-6" />
             <h3 className="text-sm font-semibold">My Actions</h3>
-          </Link>
-
-          {/* Quick Record card */}
-          <Link
-            href="/upload"
-            className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            <FaFastForward className="mb-2 h-6 w-6" />
-            <h3 className="text-sm font-semibold">Quick Record</h3>
-          </Link>
-
-          {/* Advanced Record card */}
-          <Link
-            href="/upload/adv_record_creation"
-            className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            <FaFileUpload className="mb-2 h-6 w-6" />
-            <h3 className="text-sm font-semibold">Advanced Record</h3>
           </Link>
 
           {/* Analytics card */}
@@ -158,38 +156,17 @@ export default async function DashboardPage() {
             <h3 className="text-sm font-semibold">Analytics</h3>
           </Link>
 
-          {/* Assistant card with submenu */}
-          <div className="group relative h-[120px] w-[200px]">
-            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-all duration-300 group-hover:opacity-0">
-              <FaRobot className="mb-2 h-6 w-6" />
-              <h3 className="text-sm font-semibold">Assistant</h3>
-            </div>
-            <div className="absolute inset-0 flex gap-1 opacity-0 transition-all duration-300 group-hover:opacity-100">
-              <Link
-                href="/assistant/search"
-                className="flex w-1/2 flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <FaSearch className="mb-2 h-6 w-6" />
-                <h3 className="text-sm font-semibold">Search</h3>
-              </Link>
-              <Link
-                href="/assistant/create"
-                className="flex w-1/2 flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <FaFileUpload className="mb-2 h-6 w-6" />
-                <h3 className="text-sm font-semibold">Create</h3>
-              </Link>
-            </div>
-          </div>
-
+          {/* User Management card - centered and conditional */}
           {isAdmin && (
-            <Link
-              href="/user-management"
-              className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-            >
-              <FaUsers className="mb-2 h-6 w-6" />
-              <h3 className="text-sm font-semibold">User Management</h3>
-            </Link>
+            <div className="col-span-full flex justify-center md:col-span-3">
+              <Link
+                href="/user-management"
+                className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <FaUsers className="mb-2 h-6 w-6" />
+                <h3 className="text-sm font-semibold">User Management</h3>
+              </Link>
+            </div>
           )}
         </div>
       </div>
