@@ -24,18 +24,44 @@ export default function LoginForm() {
     const email = String(formData.get('email'))
     const password = String(formData.get('password'))
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    console.log('Attempting login with:', {
       email,
-      password,
+      passwordLength: password.length,
     })
 
-    if (error) {
-      router.push('/login?message=Could not authenticate user')
-      return
-    }
+    try {
+      // Get the current session first
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession()
+      console.log('Current session:', currentSession)
 
-    if (data?.session) {
-      router.push('/dashboard')
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        console.error('Login error details:', {
+          message: error.message,
+          status: error.status,
+          name: error.name,
+          details: error,
+        })
+        router.push('/login?message=' + encodeURIComponent(error.message))
+        return
+      }
+
+      if (data?.session) {
+        console.log('Login successful, session:', {
+          role: data.session.user.role,
+          aud: data.session.user.aud,
+          email: data.session.user.email,
+        })
+        router.push('/dashboard')
+      }
+    } catch (e) {
+      console.error('Exception during login:', e)
     }
   }
 

@@ -16,7 +16,7 @@ const Footer = () => {
         </div>
 
         <div className="flex items-center">
-          <span className="text-sm text-muted-foreground">v0.7.0</span>
+          <span className="text-sm text-muted-foreground">v0.7.2</span>
         </div>
       </div>
     </footer>

@@ -8,7 +8,7 @@ export async function POST(
     const { jobId } = await Promise.resolve(params)
 
     const response = await fetch(
-      `http://143.198.22.202:8000/api/v1/check-origin/${jobId}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/check-origin/${jobId}`,
       {
         method: 'POST',
         headers: {

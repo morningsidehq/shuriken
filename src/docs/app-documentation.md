@@ -1,10 +1,13 @@
 # Constance Application Documentation
 
-Current Version: v0.7.0
+Current Version: v0.7.2
 
-Version Notes: Added Document Generation functionality with multi-tab interface, real-time document preview, and format selection.
+Version Notes: Added HTTPS route to API endpoints.
 
 ## Version History
+
+- v0.7.2: Added HTTPS route to API endpoints.
+- v0.7.1: Reduced extraneous content in dashboard and menu for enhanced user experience.
 
 - v0.7:
   - v0.7.0: Added Document Generation System

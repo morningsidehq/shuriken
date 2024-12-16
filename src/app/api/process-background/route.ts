@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       .eq('job_id', jobId)
 
     const chunkResponse = await fetch(
-      `http://143.198.22.202:8000/api/v1/chunk-text/${jobId}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/chunk-text/${jobId}`,
       {
         method: 'POST',
         headers: {
