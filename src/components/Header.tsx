@@ -147,48 +147,6 @@ function HeaderClient() {
                   </NavigationMenuList>
                 </NavigationMenu>
 
-                <NavigationMenu>
-                  <NavigationMenuList>
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger className="hover:scale-103 text-sm font-medium">
-                        Actions
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="min-w-[200px] rounded-md border border-border bg-popover p-2 shadow-md">
-                          <li>
-                            <Link
-                              href="/actions"
-                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                            >
-                              View Actions
-                            </Link>
-                          </li>
-                          <li>
-                            <Link
-                              href="/actions?new=true"
-                              className="block rounded-md px-4 py-2 text-sm text-foreground hover:bg-accent"
-                            >
-                              Create New Action
-                            </Link>
-                          </li>
-                        </ul>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
-
-                <NavigationMenu>
-                  <NavigationMenuList>
-                    <NavigationMenuItem>
-                      <Link href="/analytics" legacyBehavior passHref>
-                        <NavigationMenuLink className="inline-flex h-9 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-                          Analytics
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                  </NavigationMenuList>
-                </NavigationMenu>
-
                 {userData && isAdmin && (
                   <NavigationMenu>
                     <NavigationMenuList>

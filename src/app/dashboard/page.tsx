@@ -11,10 +11,8 @@ import {
   FaFolder,
   FaSearch,
   FaFileUpload,
-  FaPlay,
   FaGlobe,
   FaBuilding,
-  FaChartBar,
   FaUsers,
   FaEdit,
 } from 'react-icons/fa'
@@ -137,24 +135,6 @@ export default async function DashboardPage() {
               </Link>
             </div>
           </div>
-
-          {/* My Actions card */}
-          <Link
-            href="/actions"
-            className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            <FaPlay className="mb-2 h-6 w-6" />
-            <h3 className="text-sm font-semibold">My Actions</h3>
-          </Link>
-
-          {/* Analytics card */}
-          <Link
-            href="/analytics"
-            className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-          >
-            <FaChartBar className="mb-2 h-6 w-6" />
-            <h3 className="text-sm font-semibold">Analytics</h3>
-          </Link>
 
           {/* User Management card - centered and conditional */}
           {isAdmin && (
