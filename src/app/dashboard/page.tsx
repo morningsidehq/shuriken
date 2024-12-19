@@ -136,17 +136,15 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* User Management card - centered and conditional */}
+          {/* User Management card - moved up, conditional */}
           {isAdmin && (
-            <div className="col-span-full flex justify-center md:col-span-3">
-              <Link
-                href="/user-management"
-                className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <FaUsers className="mb-2 h-6 w-6" />
-                <h3 className="text-sm font-semibold">User Management</h3>
-              </Link>
-            </div>
+            <Link
+              href="/user-management"
+              className="flex h-[120px] w-[200px] flex-col items-center justify-center rounded-lg border border-border bg-card p-4 text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              <FaUsers className="mb-2 h-6 w-6" />
+              <h3 className="text-sm font-semibold">User Management</h3>
+            </Link>
           )}
         </div>
       </div>

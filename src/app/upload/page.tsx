@@ -6,53 +6,53 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export const metadata = {
-  title: 'Constance - Quick Document Intake',
+  title: 'Document Upload',
 }
 
 export default async function Upload() {
   const cookieStore = cookies()
   const supabase = createServerClient(cookieStore)
 
-  // Get authenticated user
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  // Get both user and session data with error handling
+  const [
+    {
+      data: { user },
+      error: userError,
+    },
+    {
+      data: { session },
+      error: sessionError,
+    },
+  ] = await Promise.all([supabase.auth.getUser(), supabase.auth.getSession()])
 
-  // Redirect if not logged in
-  if (!user || authError) {
-    redirect('/login')
+  // Debug session information (remove in production)
+  console.log('Session debug:', {
+    hasSession: !!session,
+    hasUser: !!user,
+    tokenLength: session?.access_token?.length,
+    userError: userError?.message,
+    sessionError: sessionError?.message,
+  })
+
+  if (!user || !session || userError || sessionError) {
+    console.error('Auth error:', { userError, sessionError })
+    redirect('/login?message=Session%20expired')
   }
 
-  // Get user's group
-  const { data: userData, error: userError } = await supabase
-    .from('profiles')
-    .select('user_group')
-    .eq('id', user.id)
-    .single()
-
-  const userGroup = userData?.user_group || user?.user_metadata?.user_group
-
-  if (!userGroup) {
-    console.error('No user group found:', userError)
-    return <div>Error: Unable to determine user group</div>
-  }
-
-  // Add this function to format the user group name
-  const formatUserGroup = (group: string) => {
-    return group.replace(/([A-Z])/g, ' $1').trim()
+  // Verify token format
+  if (!session.access_token?.startsWith('ey')) {
+    console.error('Invalid token format')
+    redirect('/login?message=Invalid%20session')
   }
 
   return (
     <div className="flex w-full flex-1 flex-col items-center gap-8">
       <div className="container py-8">
-        <h1 className="mb-8 text-center text-4xl font-bold">
-          Quick Document Intake
-        </h1>
+        <h1 className="mb-8 text-center text-4xl font-bold">Document Upload</h1>
 
         <Alert className="mb-4">
           <AlertDescription>
-            Uploading to: <strong>{formatUserGroup(userGroup)}</strong>
+            Uploading as: <strong>{user.email}</strong>
           </AlertDescription>
         </Alert>
 
@@ -63,7 +63,11 @@ export default async function Upload() {
             </h2>
           </CardHeader>
           <CardContent>
-            <FileUploader userGroup={userGroup} userId={user.id} />
+            <FileUploader
+              userId={user.id}
+              accessToken={session.access_token}
+              userGroup="default"
+            />
           </CardContent>
         </Card>
       </div>

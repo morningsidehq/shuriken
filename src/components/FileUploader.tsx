@@ -4,17 +4,23 @@ import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Progress } from '@/components/ui/progress'
-import { Upload } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
 import { processDocument } from '@/utils/documentProcessing'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 interface FileUploaderProps {
   className?: string
-  onFileSelect?: (file: File | null) => void
+  onFileSelect?: (files: File[]) => void
   showUploadButton?: boolean
-  userGroup: string
   userId: string
+  accessToken: string
+  userGroup: string
+}
+
+interface FileWithName {
+  file: File
+  documentName: string
 }
 
 interface ProcessingStatus {
@@ -22,16 +28,18 @@ interface ProcessingStatus {
   progress: number
   detail?: string
   jobId?: string
+  queuePosition?: number
 }
 
 export default function FileUploader({
   className,
   onFileSelect,
   showUploadButton = true,
+  userId,
+  accessToken,
   userGroup,
 }: FileUploaderProps) {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [documentName, setDocumentName] = useState('')
+  const [selectedFiles, setSelectedFiles] = useState<FileWithName[]>([])
   const [uploading, setUploading] = useState(false)
   const [status, setStatus] = useState<ProcessingStatus>({
     step: '',
@@ -44,78 +52,142 @@ export default function FileUploader({
     setStatus((prev) => ({ ...prev, ...newStatus }))
   }
 
+  const validateFile = (file: File): string | null => {
+    if (file.type !== 'application/pdf') {
+      return 'Please select PDF files only'
+    }
+
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+    if (file.size > MAX_FILE_SIZE) {
+      return 'File size must be less than 10MB'
+    }
+
+    return null
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null)
-    const file = e.target.files?.[0]
+    const files = Array.from(e.target.files || [])
 
-    if (file) {
-      if (file.type !== 'application/pdf') {
-        setError('Please select a PDF file')
-        e.target.value = ''
-        return
+    const validFiles: FileWithName[] = []
+    const errors: string[] = []
+
+    files.forEach((file) => {
+      const error = validateFile(file)
+      if (error) {
+        errors.push(`${file.name}: ${error}`)
+      } else {
+        validFiles.push({
+          file,
+          documentName: file.name
+            .replace('.pdf', '')
+            .replace(/[^a-zA-Z0-9-_]/g, '_'),
+        })
       }
+    })
 
-      const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-      if (file.size > MAX_FILE_SIZE) {
-        setError('File size must be less than 10MB')
-        e.target.value = ''
-        return
-      }
-
-      setSelectedFile(file)
-      // Set default document name from file name (without extension)
-      setDocumentName(
-        file.name.replace('.pdf', '').replace(/[^a-zA-Z0-9-_]/g, '_'),
-      )
-      onFileSelect?.(file)
-    } else {
-      setSelectedFile(null)
-      setDocumentName('')
-      onFileSelect?.(null)
+    if (errors.length > 0) {
+      setError(errors.join('\n'))
     }
+
+    setSelectedFiles((prev) => [...prev, ...validFiles])
+    onFileSelect?.(validFiles.map((f) => f.file))
+
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const files = Array.from(e.dataTransfer.files)
+    handleFiles(files)
+  }
+
+  const handleFiles = (files: File[]) => {
+    setError(null)
+    const validFiles: FileWithName[] = []
+    const errors: string[] = []
+
+    files.forEach((file) => {
+      const error = validateFile(file)
+      if (error) {
+        errors.push(`${file.name}: ${error}`)
+      } else {
+        validFiles.push({
+          file,
+          documentName: file.name
+            .replace('.pdf', '')
+            .replace(/[^a-zA-Z0-9-_]/g, '_'),
+        })
+      }
+    })
+
+    if (errors.length > 0) {
+      setError(errors.join('\n'))
+    }
+
+    setSelectedFiles((prev) => [...prev, ...validFiles])
+    onFileSelect?.(validFiles.map((f) => f.file))
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setError('Please select a PDF file')
-      return
-    }
-
-    if (!documentName.trim()) {
-      setError('Please provide a document name')
+    if (selectedFiles.length === 0) {
+      setError('Please select at least one PDF file')
       return
     }
 
     try {
       setUploading(true)
       setError(null)
+      const errors: string[] = []
 
-      const processResult = await processDocument(
-        selectedFile,
-        updateStatus,
-        userGroup,
-        documentName.trim(), // Pass the document name to the process
-      )
+      // Upload files sequentially
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const { file, documentName } = selectedFiles[i]
+        updateStatus({
+          step: `Uploading file ${i + 1} of ${selectedFiles.length}`,
+          progress: (i / selectedFiles.length) * 100,
+        })
 
-      updateStatus({
-        step: 'Complete',
-        progress: 100,
-        detail: 'Document successfully processed and uploaded',
-        jobId: processResult.jobId,
-      })
+        try {
+          await processDocument(
+            file,
+            updateStatus,
+            userId,
+            documentName.trim(),
+            accessToken,
+            userGroup,
+          )
+        } catch (fileError: any) {
+          // Collect error but continue with next file
+          errors.push(`Error uploading ${file.name}: ${fileError.message}`)
+          console.error(`Failed to upload ${file.name}:`, fileError)
+          // Continue with next file instead of throwing
+          continue
+        }
+      }
 
-      // Clear the form
-      setSelectedFile(null)
-      setDocumentName('')
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      // If we had any errors, show them all
+      if (errors.length > 0) {
+        setError(errors.join('\n'))
+        // Only clear successfully uploaded files
+        setSelectedFiles((prev) =>
+          prev.filter(
+            (_, index) =>
+              !errors.some((err) => err.includes(prev[index].file.name)),
+          ),
+        )
+      } else {
+        // All successful - clear everything
+        setSelectedFiles([])
+      }
     } catch (error: any) {
       console.error('Upload error:', error)
-      setError(error.message || 'Failed to process document')
-      updateStatus({
-        step: 'Error',
-        progress: 0,
-        detail: error.message,
-      })
+      setError(error.message || 'Failed to queue documents')
     } finally {
       setUploading(false)
     }
@@ -125,19 +197,25 @@ export default function FileUploader({
     <div className={`space-y-4 ${className}`}>
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription className="whitespace-pre-line">
+            {error}
+          </AlertDescription>
         </Alert>
       )}
 
       <div
         className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 transition-colors hover:border-gray-400"
         onClick={() => fileInputRef.current?.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
       >
         <Upload className="mb-4 h-12 w-12 text-gray-400" />
         <p className="text-sm text-gray-600">
-          Click to upload or drag and drop
+          Click to upload or drag and drop multiple files
         </p>
-        <p className="mt-1 text-xs text-gray-500">PDF files only (max 10MB)</p>
+        <p className="mt-1 text-xs text-gray-500">
+          PDF files only (max 10MB each)
+        </p>
       </div>
 
       <input
@@ -146,27 +224,44 @@ export default function FileUploader({
         onChange={handleFileChange}
         className="hidden"
         accept=".pdf,application/pdf"
+        multiple
       />
 
-      {selectedFile && (
+      {selectedFiles.length > 0 && (
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <div className="flex-1 rounded border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500">
-              {selectedFile.name}
-            </div>
-          </div>
+          {selectedFiles.map((fileWithName, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 rounded border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500">
+                  {fileWithName.file.name}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(index)}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="documentName">Document Name</Label>
-            <Input
-              id="documentName"
-              type="text"
-              value={documentName}
-              onChange={(e) => setDocumentName(e.target.value)}
-              placeholder="Enter document name"
-              disabled={uploading}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor={`documentName-${index}`}>Document Name</Label>
+                <Input
+                  id={`documentName-${index}`}
+                  type="text"
+                  value={fileWithName.documentName}
+                  onChange={(e) => {
+                    const newFiles = [...selectedFiles]
+                    newFiles[index].documentName = e.target.value
+                    setSelectedFiles(newFiles)
+                  }}
+                  placeholder="Enter document name"
+                  disabled={uploading}
+                />
+              </div>
+            </div>
+          ))}
 
           {uploading && (
             <div className="space-y-2">
@@ -175,7 +270,11 @@ export default function FileUploader({
                 {status.step}: {status.detail}
               </p>
               {status.jobId && (
-                <p className="text-xs text-gray-500">Job ID: {status.jobId}</p>
+                <p className="text-xs text-gray-500">
+                  Job ID: {status.jobId}
+                  {status.queuePosition &&
+                    ` | Queue Position: ${status.queuePosition}`}
+                </p>
               )}
             </div>
           )}
@@ -186,10 +285,14 @@ export default function FileUploader({
         <Button
           type="button"
           onClick={handleUpload}
-          disabled={!selectedFile || !documentName.trim() || uploading}
+          disabled={selectedFiles.length === 0 || uploading}
           className="w-full max-w-[300px]"
         >
-          {uploading ? 'Processing...' : 'Upload PDF'}
+          {uploading
+            ? 'Processing...'
+            : `Upload ${selectedFiles.length} PDF${
+                selectedFiles.length !== 1 ? 's' : ''
+              }`}
         </Button>
       )}
     </div>

@@ -1,10 +1,12 @@
 'use server'
 
-import { createBrowserClient } from '@/utils/supabase'
+import { cookies } from 'next/headers'
+import { createServerClient } from '@/utils/supabase'
 import { redirect } from 'next/navigation'
 
 export async function handleSignUp(formData: FormData) {
-  const supabase = createBrowserClient()
+  const cookieStore = cookies()
+  const supabase = createServerClient(cookieStore)
 
   const email = String(formData.get('email'))
   const password = String(formData.get('password'))
@@ -18,40 +20,45 @@ export async function handleSignUp(formData: FormData) {
     return redirect('/signup?message=Invalid phone number format')
   }
 
-  // Create the user account
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-      data: {
-        first_name: firstName,
-        last_name: lastName,
-      },
-    },
-  })
-
-  if (authError) {
-    return redirect('/signup?message=Could not create user')
-  }
-
-  // Create the profile record
-  if (authData.user) {
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: authData.user.id,
-      first_name: firstName,
-      last_name: lastName,
+  try {
+    // Create the user account
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
-      phone,
-      user_role: 8, // Default to Agency User
+      password,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+        },
+      },
     })
 
-    if (profileError) {
-      // If profile creation fails, we should probably clean up the auth user
-      await supabase.auth.admin.deleteUser(authData.user.id)
-      return redirect('/signup?message=Could not create user profile')
+    if (authError) {
+      return redirect('/signup?message=Could not create user')
     }
-  }
 
-  return redirect('/login?message=Check your email to confirm your account')
+    // Create the profile record
+    if (authData.user) {
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
+        user_role: 8, // Default to Agency User
+      })
+
+      if (profileError) {
+        // If profile creation fails, clean up the auth user
+        await supabase.auth.admin.deleteUser(authData.user.id)
+        return redirect('/signup?message=Could not create user profile')
+      }
+    }
+
+    return redirect('/login?message=Check your email to confirm your account')
+  } catch (error) {
+    console.error('Signup error:', error)
+    return redirect('/signup?message=An unexpected error occurred')
+  }
 }

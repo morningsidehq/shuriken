@@ -21,30 +21,29 @@ interface UserData {
 }
 
 function HeaderClient() {
-  const { supabase } = useSupabase()
+  const { supabase, session } = useSupabase()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     async function loadUserData() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-
-      if (user) {
+      if (session?.user) {
         const { data } = await supabase
           .from('profiles')
           .select('user_role')
-          .eq('id', user.id)
+          .eq('id', session.user.id)
           .single()
 
         setUserData(data)
         setIsAdmin(data?.user_role === 7)
+      } else {
+        setUserData(null)
+        setIsAdmin(false)
       }
     }
 
     loadUserData()
-  }, [supabase])
+  }, [supabase, session])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -67,7 +66,7 @@ function HeaderClient() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           {userData ? (
-            <nav className="flex items-center">
+            <nav className="flex items-center gap-4">
               <div className="flex space-x-2">
                 <NavigationMenu>
                   <NavigationMenuList>
@@ -162,6 +161,7 @@ function HeaderClient() {
                   </NavigationMenu>
                 )}
               </div>
+              <ThemeToggle />
             </nav>
           ) : (
             <div className="flex flex-1 items-center justify-end gap-2 md:flex">

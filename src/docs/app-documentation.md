@@ -1,13 +1,16 @@
 # Constance Application Documentation
 
-Current Version: v0.7.2
+Current Version: v0.7.5
 
-Version Notes: Added HTTPS route to API endpoints.
+Version Notes: New functionality for uploading documents, including multi-file upload and drag-and-drop. Reitterated semantic search functionality.
 
 ## Version History
 
-- v0.7.2: Added HTTPS route to API endpoints.
-- v0.7.1: Reduced extraneous content in dashboard and menu for enhanced user experience.
+- v0.7:
+  - v0.7.5: Added functionality for uploading documents, including multi-file upload and drag-and-drop. Reitterated semantic search functionality.
+  - v0.7.21: Cleaned up unused api routes.
+  - v0.7.2: Added HTTPS route to API endpoints.
+  - v0.7.1: Reduced extraneous content in dashboard and menu for enhanced user experience.
 
 - v0.7:
   - v0.7.0: Added Document Generation System
@@ -514,22 +517,6 @@ Components:
   - Error handling
 
 ## API Structure
-
-### Entity Analytics
-
-#### Search Endpoint (`/api/entity-analytics/search`)
-- Handles entity search queries
-- Input validation using Zod schema
-- Returns matching entity suggestions
-
-#### Timeline Endpoint (`/api/entity-analytics/timeline`)
-- Processes requests for entity timeline data
-- Supports multiple entity parameters
-- Returns occurrence data including:
-  - Entity name
-  - Entity type
-  - Record date
-  - Record ID
 
 ### Semantic Search
 

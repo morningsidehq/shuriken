@@ -36,8 +36,6 @@ export default async function SearchPage() {
   }
 
   // Get user group for document access control
-  // Added in v0.5.7 for document processing permissions
-  // @see app-documentation.md - v0.5.7: Added user group to document processing
   const { data: userData } = await supabase
     .from('profiles')
     .select('user_group')
