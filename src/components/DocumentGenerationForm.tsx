@@ -42,14 +42,12 @@ interface GenerationTab {
 }
 
 const formSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters'),
   instructions: z
     .string()
     .min(10, 'Instructions must be at least 10 characters'),
-  context: z
-    .string()
-    .max(500, 'Search context must be less than 500 characters'),
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  format: z.enum(['docx', 'pdf', 'pptx', 'csv'], {
+  context: z.string().optional(),
+  format: z.enum(['docx', 'pdf', 'csv'], {
     required_error: 'Please select a file format',
   }),
   documentType: z.string().min(1, 'Document type is required'),
@@ -77,8 +75,8 @@ export default function DocumentGenerationForm({
       instructions: '',
       context: '',
       title: '',
-      format: 'docx',
-      documentType: '',
+      format: 'pdf',
+      documentType: 'report',
     },
   })
 
@@ -87,12 +85,24 @@ export default function DocumentGenerationForm({
       setIsLoading(true)
 
       const formData = {
-        ...values,
+        title: values.title,
+        instructions: values.instructions,
+        context: values.context || '',
+        format: values.format,
+        document_type: values.documentType,
+        document_date:
+          values.documentDate?.toISOString() || new Date().toISOString(),
         user_group: userGroup,
         user_id: userId,
+        metadata: {
+          user_group: userGroup,
+          user_id: userId,
+        },
       }
 
-      const response = await fetch('/api/document/generate', {
+      console.log('Submitting document generation request:', formData)
+
+      const response = await fetch('/api/documents/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +111,11 @@ export default function DocumentGenerationForm({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to generate document')
+        const errorData = await response.json()
+        console.error('Document generation error details:', errorData)
+        throw new Error(
+          errorData.error || errorData.message || 'Failed to generate document',
+        )
       }
 
       const blob = await response.blob()
@@ -134,7 +148,10 @@ export default function DocumentGenerationForm({
       console.error('Error generating document:', error)
       toast({
         title: 'Error',
-        description: 'Failed to generate document. Please try again.',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to generate document. Please try again.',
         variant: 'destructive',
       })
     } finally {
@@ -337,7 +354,6 @@ export default function DocumentGenerationForm({
                                   Word Document (.docx)
                                 </option>
                                 <option value="pdf">PDF Document (.pdf)</option>
-                                <option value="pptx">PowerPoint (.pptx)</option>
                                 <option value="csv">
                                   CSV Spreadsheet (.csv)
                                 </option>
