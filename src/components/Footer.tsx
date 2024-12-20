@@ -16,7 +16,12 @@ const Footer = () => {
         </div>
 
         <div className="flex items-center">
-          <span className="text-sm text-muted-foreground">v0.7.51</span>
+          <a
+            href="/docs/app-documentation.md"
+            className="text-sm text-muted-foreground transition-colors hover:text-primary"
+          >
+            v0.7.6
+          </a>
         </div>
       </div>
     </footer>

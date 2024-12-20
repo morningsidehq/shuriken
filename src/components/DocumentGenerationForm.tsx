@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { processDocument } from '@/utils/documentProcessing'
 
 interface GeneratedDocument {
   id: string
@@ -68,6 +69,8 @@ export default function DocumentGenerationForm({
   const [activeTab, setActiveTab] = useState('1')
   const [selectedDocument, setSelectedDocument] =
     useState<GeneratedDocument | null>(null)
+  const [uploadingDocIds, setUploadingDocIds] = useState<Set<string>>(new Set())
+  const [blobUrls] = useState<Set<string>>(new Set())
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -120,6 +123,7 @@ export default function DocumentGenerationForm({
 
       const blob = await response.blob()
       const url = URL.createObjectURL(blob)
+      blobUrls.add(url)
 
       // Update the documents list with the new document
       const newDocument: GeneratedDocument = {
@@ -167,6 +171,54 @@ export default function DocumentGenerationForm({
     ])
     setActiveTab(newId)
   }
+
+  const handleUploadToLibrary = async (doc: GeneratedDocument) => {
+    try {
+      setUploadingDocIds((prev) => new Set(prev).add(doc.id))
+
+      // Create a copy of the blob from the existing URL
+      const response = await fetch(doc.url)
+      if (!response.ok) {
+        throw new Error('Failed to access document data')
+      }
+
+      const blob = await response.blob()
+      const file = new File([blob], `${doc.title}.${doc.format}`, {
+        type:
+          doc.format === 'pdf' ? 'application/pdf' : 'application/octet-stream',
+      })
+
+      await processDocument(file, () => {}, userId, doc.title, '', userGroup)
+
+      toast({
+        title: 'Success',
+        description: 'Document uploaded to library successfully',
+      })
+    } catch (error) {
+      console.error('Error uploading to library:', error)
+      toast({
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : 'Failed to upload document',
+        variant: 'destructive',
+      })
+    } finally {
+      setUploadingDocIds((prev) => {
+        const next = new Set(prev)
+        next.delete(doc.id)
+        return next
+      })
+    }
+  }
+
+  useEffect(() => {
+    // Cleanup function that runs when component unmounts
+    return () => {
+      blobUrls.forEach((url) => {
+        URL.revokeObjectURL(url)
+      })
+    }
+  }, [blobUrls])
 
   return (
     <div className="container mx-auto">
@@ -399,12 +451,27 @@ export default function DocumentGenerationForm({
                             {doc.timestamp.toLocaleString()}
                           </p>
                         </div>
-                        <Button
-                          variant="outline"
-                          onClick={() => setSelectedDocument(doc)}
-                        >
-                          View Document
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleUploadToLibrary(doc)}
+                            disabled={uploadingDocIds.has(doc.id)}
+                          >
+                            {uploadingDocIds.has(doc.id) ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              'Upload to Library'
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedDocument(doc)}
+                          >
+                            View Document
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -418,10 +485,7 @@ export default function DocumentGenerationForm({
       <Dialog
         open={!!selectedDocument}
         onOpenChange={() => {
-          if (selectedDocument) {
-            URL.revokeObjectURL(selectedDocument.url)
-            setSelectedDocument(null)
-          }
+          setSelectedDocument(null)
         }}
       >
         <DialogContent className="h-[90vh] max-w-[45vw] gap-0 p-0">

@@ -1,12 +1,13 @@
 # Constance Application Documentation
 
-Current Version: v0.7.51
+Current Version: v0.7.6
 
-Version Notes: Fixed issue with document generation form.
+Version Notes: Added upload to library feature to the document generation page.
 
 ## Version History
 
 - v0.7:
+  - v0.7.6: Added upload to library feature to the document generation page.
   - v0.7.51: Fixed issue with document generation form.
   - v0.7.5: Added functionality for uploading documents, including multi-file upload and drag-and-drop. Reitterated semantic search functionality.
   - v0.7.21: Cleaned up unused api routes.
