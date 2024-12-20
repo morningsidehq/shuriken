@@ -45,29 +45,17 @@ export default function EditAgencyUserModal({
     const phone = String(formData.get('phone'))
 
     try {
-      // Update auth.users metadata and phone
-      const { error: authError } = await supabase.auth.updateUser({
-        phone,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        },
+      // Use the new RPC function to update the user
+      const { error } = await supabase.rpc('update_group_user', {
+        user_id: user.id,
+        group_name: userGroup,
+        first_name: firstName,
+        last_name: lastName,
+        email: user.email,
+        phone: phone || null,
       })
 
-      if (authError) throw authError
-
-      // Update public.profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          phone,
-        })
-        .eq('id', user.id)
-        .eq('user_group', userGroup)
-
-      if (profileError) throw profileError
+      if (error) throw error
 
       setOpen(false)
       onUserUpdated()

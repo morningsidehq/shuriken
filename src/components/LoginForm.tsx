@@ -58,6 +58,22 @@ export default function LoginForm() {
           aud: data.session.user.aud,
           email: data.session.user.email,
         })
+
+        // Add profile check
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .single()
+
+        if (!profile || profileError) {
+          await supabase.auth.signOut()
+          router.push(
+            '/login?message=Account setup incomplete. Please contact support.',
+          )
+          return
+        }
+
         router.push('/dashboard')
       }
     } catch (e) {

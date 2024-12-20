@@ -17,6 +17,7 @@ import {
   FaEdit,
 } from 'react-icons/fa'
 import Image from 'next/image'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export const metadata = {
   title: 'Constance - Dashboard',
@@ -26,7 +27,11 @@ export const metadata = {
  * Main dashboard page component that handles user authentication and displays navigation options
  * @returns JSX.Element The dashboard interface with navigation cards
  */
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { message?: string }
+}) {
   // Initialize Supabase client with cookies
   const cookieStore = cookies()
   const supabase = createServerClient(cookieStore)
@@ -45,7 +50,7 @@ export default async function DashboardPage() {
   // Fetch user profile data including group membership
   const { data: userData } = await supabase
     .from('profiles')
-    .select('user_group, user_role')
+    .select('user_group, user_role, confirmed')
     .eq('id', user.id)
     .single()
 
@@ -53,6 +58,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="container py-10">
+      {/* Message display */}
+      {searchParams.message && (
+        <Alert className="mb-6">
+          <AlertDescription>{searchParams.message}</AlertDescription>
+        </Alert>
+      )}
+
       {/* User information section */}
       <div className="flex flex-col items-center justify-center space-y-4">
         <div className="flex items-center justify-center space-x-2">
@@ -75,6 +87,12 @@ export default async function DashboardPage() {
                 <span className="font-medium">
                   {' '}
                   • {userData.user_group.replace(/([A-Z])/g, ' $1').trim()}
+                </span>
+              )}
+              {userData?.confirmed === false && (
+                <span className="ml-2 text-yellow-600 dark:text-yellow-400">
+                  {' '}
+                  • Pending Confirmation
                 </span>
               )}
             </>

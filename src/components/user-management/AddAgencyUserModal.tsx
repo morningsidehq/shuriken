@@ -37,55 +37,48 @@ export default function AddAgencyUserModal({
     const lastName = String(formData.get('lastName'))
     const phone = String(formData.get('phone'))
 
-    // Generate a temporary password
-    const tempPassword = Math.random().toString(36).slice(-12)
-
     try {
-      // Create the user account in auth.users
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // First, create auth user (this will send confirmation email)
+      const { error: authError } = await supabase.auth.signUp({
         email,
-        password: tempPassword,
-        phone,
+        password: generateTempPassword(),
         options: {
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
           data: {
             first_name: firstName,
             last_name: lastName,
-            user_group: userGroup,
           },
         },
       })
 
       if (authError) throw authError
 
-      // Insert into public.profiles if user was created
-      if (authData.user) {
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: authData.user.id,
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          phone,
-          user_role: 8, // Default to Agency User
-          user_group: userGroup,
-          confirmed: true, // Auto-confirm since added by admin
-        })
+      // Then create confirmed profile with our function
+      const { error } = await supabase.rpc('add_agency_user', {
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        phone,
+        group_name: userGroup,
+      })
 
-        if (profileError) {
-          // Clean up auth user if profile creation fails
-          await supabase.auth.admin.deleteUser(authData.user.id)
-          throw profileError
-        }
-      }
+      if (error) throw error
 
       setOpen(false)
       onUserAdded()
     } catch (error) {
       console.error('Error adding user:', error)
-      // Add toast notification here
     } finally {
       setLoading(false)
     }
+  }
+
+  // Helper function to generate a temporary password
+  function generateTempPassword() {
+    return (
+      Math.random().toString(36).slice(-12) +
+      Math.random().toString(36).toUpperCase().slice(-4) +
+      Math.random().toString(9).slice(-4)
+    )
   }
 
   return (

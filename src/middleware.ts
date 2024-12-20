@@ -7,6 +7,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createMiddlewareClient } from '@/utils/supabase'
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/logout', '/reset-password', '/']
+const AGENCY_ROUTES = [
+  '/records/agencyrecords',
+  '/assistant/search',
+  '/assistant/create',
+]
 
 // Simple in-memory store for rate limiting
 const rateLimit = new Map()
@@ -88,6 +93,26 @@ export async function middleware(request: NextRequest) {
       const loginUrl = new URL('/login', request.url)
       loginUrl.searchParams.set('redirectTo', currentPath)
       return NextResponse.redirect(loginUrl)
+    }
+
+    // Check if the current route is an agency-specific route
+    if (AGENCY_ROUTES.some((route) => currentPath.startsWith(route))) {
+      // Get user profile to check confirmed status
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('confirmed')
+        .eq('id', session.user.id)
+        .single()
+
+      // If not confirmed, redirect to dashboard with message
+      if (!profile?.confirmed) {
+        const dashboardUrl = new URL('/dashboard', request.url)
+        dashboardUrl.searchParams.set(
+          'message',
+          'Your account must be confirmed by an administrator to access this feature.',
+        )
+        return NextResponse.redirect(dashboardUrl)
+      }
     }
 
     return response

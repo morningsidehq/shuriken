@@ -34,10 +34,6 @@ export default async function UserManagementPage() {
     redirect('/dashboard')
   }
 
-  console.log('User Role:', userData?.user_role)
-  console.log('User Group:', userData?.user_group)
-  console.log('Is Agency Admin:', userData?.user_role === 7)
-
   return (
     <div className="container py-10">
       <div className="flex items-center justify-center space-x-2">

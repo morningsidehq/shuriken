@@ -34,6 +34,7 @@ interface AgencyUser {
   last_name: string
   confirmed: boolean
   user_group: string
+  user_role: number
   phone?: string
 }
 
@@ -51,33 +52,20 @@ export default function AgencyUserManagement({
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true)
-      console.log('Fetching users for group:', userGroup)
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(
-          `
-          id,
-          email,
-          first_name,
-          last_name,
-          confirmed,
-          user_group,
-          phone
-        `,
-        )
-        .eq('user_group', userGroup)
-        .not('disabled', 'eq', true)
+      const { data, error } = await supabase.rpc('get_group_users', {
+        group_name: userGroup,
+      })
 
       if (error) {
-        console.error('Supabase error details:', error)
+        console.error('Error fetching users:', error.message)
         throw error
       }
 
-      console.log('Fetched users:', data)
       setUsers(data || [])
     } catch (error) {
-      console.error('Error fetching users:', error)
+      console.error('Error in fetchUsers:', error)
+      setUsers([])
     } finally {
       setLoading(false)
     }
@@ -90,16 +78,12 @@ export default function AgencyUserManagement({
   const handleConfirmUser = async (userId: string) => {
     try {
       setConfirmingUser(userId)
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({ confirmed: true })
-        .eq('id', userId)
-        .eq('user_group', userGroup) // Extra safety check
+      const { error } = await supabase.rpc('confirm_group_user', {
+        user_id: userId,
+        group_name: userGroup,
+      })
 
       if (error) throw error
-
-      // Refresh the users list to show the updated status
       await fetchUsers()
     } catch (error) {
       console.error('Error confirming user:', error)
@@ -110,29 +94,15 @@ export default function AgencyUserManagement({
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      // Delete the profile first
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId)
-        .eq('user_group', userGroup)
-
-      if (profileError) throw profileError
-
-      // Instead of using admin.deleteUser, we'll disable the user's access
-      const { error: authError } = await supabase.auth.updateUser({
-        data: {
-          disabled: true,
-          deleted_at: new Date().toISOString(),
-        },
+      const { error } = await supabase.rpc('delete_group_user', {
+        user_id: userId,
+        group_name: userGroup,
       })
 
-      if (authError) throw authError
-
+      if (error) throw error
       await fetchUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
-      // Add toast notification here
     } finally {
       setDeleteUserId(null)
     }

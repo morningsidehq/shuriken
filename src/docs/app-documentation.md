@@ -1,20 +1,32 @@
 # Constance Application Documentation
 
-Current Version: v0.7.6
+Current Version: v0.7.7
 
-Version Notes: Added upload to library feature to the document generation page.
+Version Notes: Enhanced user management system with role-based interfaces and comprehensive user controls.
+
+## Table of Contents
+1. [Version History](#version-history)
+2. [Core Configuration](#core-configuration)
+3. [Authentication & Security](#authentication--security)
+4. [Application Structure](#application-structure)
+5. [API Structure](#api-structure)
+6. [Component Library](#component-library)
 
 ## Version History
 
 - v0.7:
+  - v0.7.7: Enhanced user management system with role-based interfaces and comprehensive user controls.
+    - Added separate interfaces for System Admins and Agency Admins
+    - Implemented user confirmation workflow
+    - Added user CRUD operations with role-based permissions
+    - Enhanced security with group-based access control
+    - Added phone number support for user profiles
   - v0.7.6: Added upload to library feature to the document generation page.
   - v0.7.51: Fixed issue with document generation form.
   - v0.7.5: Added functionality for uploading documents, including multi-file upload and drag-and-drop. Reitterated semantic search functionality.
   - v0.7.21: Cleaned up unused api routes.
   - v0.7.2: Added HTTPS route to API endpoints.
   - v0.7.1: Reduced extraneous content in dashboard and menu for enhanced user experience.
-
-- v0.7:
   - v0.7.0: Added Document Generation System
     - Implemented multi-tab document generation interface
     - Added support for multiple document formats (PDF, DOCX, PPTX, CSV)
@@ -134,434 +146,192 @@ Version Notes: Added upload to library feature to the document generation page.
   - v0.2.4: Added the Actions page and some functionality.
   - v0.2.3: Added advanced record creation, changed landing page for Constance-specific, added dashboard links with updated styling/layout, added Constance logo to loading screen.
 
+## Core Configuration
+
+### System Requirements
+- Windows 11 OS recommended
+- Node.js LTS version
+- Supabase account and project
+
+### Configuration Files
+- **next.config.js**: Next.js configuration with MDX support and standalone output
+- **postcss.config.js**: Tailwind CSS configuration
+- **server.js**: Production deployment server implementation
+- **tailwind.config.js**: Theme and styling configuration
+
+## Authentication & Security
+
+### Authentication System
+- Supabase Authentication integration
+- Role-based access control (RBAC)
+- User group management
+- Session handling and middleware protection
+
+### Security Features
+- HTTPS enforcement
+- API route protection
+- User group isolation
+- Audit logging
+- Secure file handling
+
 ## Application Structure
 
-### Core Configuration
+### Core Pages
 
-- **next.config.js**: Configuration for Next.js, including MDX support, bundle analysis, and standalone output
-- **postcss.config.js**: PostCSS configuration for Tailwind CSS
-- **server.js**: Custom server implementation for production deployment
+#### 1. Authentication Flow
+- **Landing** (`src/app/page.tsx`): Welcome page with Constance branding
+- **Login** (`src/app/login/page.tsx`): Enhanced login with error handling
+- **Signup** (`src/app/signup/page.tsx`): User registration with group assignment
+- **Logout** (`src/app/logout/page.tsx`): Session termination
 
-### Authentication & Middleware
+#### 2. Dashboard (`src/app/dashboard/page.tsx`)
+- Role-based dashboard views
+- Quick access tiles
+- Recent activity display
+- Notification center
+- Admin-specific features
 
-The application uses Supabase for authentication, implemented through:
+#### 3. Document Management
 
-- **src/middleware.ts**: Handles authentication routes and protected pages
-- **src/utils/supabase.ts**: Supabase client utilities for browser, server, and middleware contexts
-
-### Pages Structure
-
-#### 1. Landing Page (`src/app/page.tsx`)
-- Simple welcome page with login/signup options
-- Features Constance logo and navigation buttons
-
-#### 2. Authentication Pages
-- **Login** (`src/app/login/page.tsx`): Handles user login
-- **Signup** (`src/app/signup/page.tsx`): User registration
-- **Logout** (`src/app/logout/page.tsx`): Confirmation page after logout
-
-#### 3. Dashboard (`src/app/dashboard/page.tsx`)
-Protected page featuring:
-- Quick access tiles to main functionalities
-- Navigation to Records, Search, Actions, Upload, and User Management features
-- Integration with user authentication state
-- Admin-specific features like User Management access
-
-#### 4. Records Management
-
-##### Public Records (`src/app/records/page.tsx`)
-- Redesigned with shadcn/ui components
-- Features enhanced filtering capabilities with multi-select dropdowns
-- Improved table layout with sorting and pagination
-
-Components:
-- **RecordsContent**: Main content container using shadcn/ui Card
-- **DataTable**: New shadcn/ui table component with built-in sorting and filtering
-- **FilterDropdowns**: Enhanced filters using shadcn/ui Select and MultiSelect
-
-##### Agency Records (`src/app/records/agencyrecords/page.tsx`)
-- Completely overhauled with shadcn/ui components
-- Enhanced document preview capabilities
-- Improved metadata display
-
-Components:
-- **AgencyRecordsDataTable**: New shadcn/ui table implementation
-- **DocumentPreview**: Enhanced PDF viewer with shadcn/ui Dialog
-- **MetadataDisplay**: New metadata panel using shadcn/ui Accordion
-
-#### 5. Upload System
-
-##### Intake System (`src/app/upload/page.tsx`)
-- Redesigned upload interface using shadcn/ui components
-- Improved drag-and-drop functionality with visual feedback
-- Progress tracking with shadcn/ui Progress component
-- Multi-file upload support
-- Automatic metadata extraction
-- Real-time validation and error handling
-
-Components:
-- **FileUploadZone**: Enhanced upload area with:
-  - Visual feedback during drag operations
-  - File type validation
-  - Size limit enforcement
-  - Multiple file handling
-- **UploadProgress**: 
-  - Real-time progress tracking interface
-  - Individual file progress bars
-  - Overall upload status
-  - Error state handling
-- **FileList**: 
-  - Improved file list display using shadcn/ui components
-  - File metadata preview
-  - Delete/remove functionality
-  - Upload status indicators
-- **MetadataEditor**:
-  - Automatic metadata extraction
-  - Manual metadata editing capabilities
-  - Validation rules enforcement
-- **UploadQueue**:
-  - Manages multiple file uploads
-  - Prioritization options
-  - Retry failed uploads
-  - Batch operations support
-
-#### 6. Actions Management (`src/app/actions/page.tsx`)
-- Task and action management interface
-
-Components:
-- **ActionsProvider**: State management for actions
-- **ActionsTable**: Display and interaction with actions
-- **ActionFilters**: Filtering interface
-- **ActionForm**: Creation/editing form
-
-#### 7. Search Interface (`src/app/search/page.tsx`)
-- Document search functionality
-- Integration with Typesense for search capabilities
-
-Components:
-- **SearchInterface**: Main search interface
-- **PDF viewer modal** for results:
-  - Lightbox-style modal display for viewing PDFs
-  - Triggered by clicking on search results
-  - Full-screen viewing capability
-  - Built-in PDF controls including:
-    - Zoom in/out
-    - Page navigation
-    - Document download option
-  - Responsive design that works across devices
-  - Keyboard shortcuts for navigation (Esc to close, arrow keys for pages)
-
-#### 8. Analytics Pages (`src/app/analytics/page.tsx`)
-- Entity analysis and visualization interface
-- Interactive timeline visualization using Recharts
-- Real-time entity search capabilities
-
-Components:
-- **EntitySearch**: Real-time entity search with debounced input
-  - Uses shadcn/ui Command component for search interface
-  - Autocomplete suggestions with agency names
-  - Debounced search with 300ms delay
-  - Error handling for failed searches
-
-- **TimelineChart**: Interactive scatter plot showing entity occurrences over time
-  - Built with Recharts ScatterChart
-  - Color-coded entities with persistent color assignments
-  - Custom tooltip showing detailed record information
-  - Automatic date formatting on X-axis
-  - Responsive container adapting to viewport size
-  - Legend for multiple entity tracking
-
-Features:
-- Multi-entity selection and comparison
-- Color-coded entity visualization using a predefined palette
-- Document occurrence tracking with record IDs
-- Interactive timeline navigation
-- Real-time search suggestions from agency database
-- Error handling and validation using Zod
-- Responsive visualization using Recharts
-
-API Routes:
-- **/api/entity-analytics/search**: Entity search endpoint
-  - Handles agency name searches with partial matching
-  - Returns up to 10 matching results
-  - Input validation with Zod schema
-
-- **/api/entity-analytics/timeline**: Timeline data retrieval endpoint
-  - Accepts multiple entity parameters
-  - Returns chronological record occurrences
-  - Includes record metadata (ID, date, entity name)
-  - Supports filtering by agency IDs
-
-#### 9. Semantic Search (`src/app/assistant/search/page.tsx`)
-- Advanced document search using embeddings and vector similarity
-- Real-time content preview directly from search results
-- Multi-tab search interface for parallel searches
-- User group-scoped search results
-
-Components:
-- **SemanticSearch**: Main search interface with hybrid search capabilities
-  - Uses all-mpnet-base-v2 model for text embeddings
-  - Implements similarity-based document matching
-  - Direct content preview from vector storage
-  - Displays metadata and similarity scores
-  - Multi-tab search functionality:
-    - Dynamic tab creation and removal
-    - Independent search contexts per tab
-    - Parallel search capabilities
-  - User group context integration
-  - Enhanced error handling and loading states
-
-#### 10. User Management (`src/app/user-management/page.tsx`)
-- Admin-only interface for managing system users
-- Two distinct interfaces based on user role:
-  1. Agency Admin Interface (user_role === 7):
-    - Management of users within their specific agency group
-    - User addition with automatic group assignment
-    - User confirmation capabilities
-    - Real-time user status updates
-    - User list with filtering and refresh capabilities
-  2. System Admin Interface (user_role === 5):
-    - Global user management capabilities (planned)
-    - Cross-agency user administration
-    - System-wide role management
-
-Components:
-- **AgencyUserManagement**: Agency-specific user management interface
-  - Real-time user list with status indicators
-  - User confirmation controls
-  - Refresh functionality
-  - Empty state handling
-  
-- **AddAgencyUserModal**: New user creation interface
-  - Automated user provisioning
-  - Temporary password generation
-  - Profile creation with agency group assignment
-  - Error handling and validation
-  - Loading states and feedback
-
-Features:
-- Role-based access control:
-  - System Admin (role 5): Full system access
-  - Agency Admin (role 7): Agency-specific access
-- User status management:
-  - Pending/Confirmed status tracking
-  - User confirmation workflow
-- Security:
-  - Role verification
-  - Group-based access restrictions
-  - Audit logging for changes
-- Real-time updates:
-  - Immediate status changes
-  - List refresh capabilities
-  - Loading states
-
-API Routes:
-- **/api/embeddings**: Text embedding generation endpoint
-  - Uses @xenova/transformers for embedding generation
-  - Implements normalized vector outputs
-  - Includes debug information and error handling
-  - Optimized with ONNX runtime
-
-Database Functions:
-- **hybrid_search**: Supabase stored procedure
-  - Combines vector similarity search with text matching
-  - Configurable similarity thresholds
-  - Returns ranked results with metadata
-  - Supports content preview extraction
-
-#### 11. Document Generation (`src/app/assistant/create/page.tsx`)
-- Protected route requiring authentication
-- Advanced document generation interface with:
-  - Multi-tab generation sessions
-  - Multiple output format support
-  - Context-aware document creation
-  - Real-time preview capabilities
-
-Components:
-- **DocumentGenerationForm**: Main generation interface
-  - Form validation using Zod schema
-  - Multiple format support:
-    - Word Documents (.docx)
-    - PDF Documents (.pdf)
-    - PowerPoint Presentations (.pptx)
-    - CSV Spreadsheets (.csv)
-  - Document types:
-    - Memos, Proposals, Invoices
-    - Statements of Work (SOW)
-    - Reports, Policy Documents
-    - Letters of Intent (LOI)
-    - Memorandums of Understanding (MOU)
-    - Certificates, Permits
-    - Work Orders
-    - Press Briefings
-  - Context-based generation with search integration
-  - Document date/time specification
-  - Real-time document preview
+##### Records System
+- **Public Records** (`src/app/records/page.tsx`)
+  - Enhanced filtering system
+  - Sorting and pagination
+  - Document preview
   - Download capabilities
-  - Session history tracking
 
-Features:
-- Multi-tab Interface:
-  - Independent generation sessions
-  - Document history per tab
-  - Dynamic tab creation
-- Document Preview:
-  - Built-in PDF viewer
-  - Format-specific handling
-  - Download options for all formats
-- Security:
-  - User group integration
-  - User ID tracking
-  - Access control enforcement
-- Error Handling:
-  - Form validation
-  - Generation error feedback
-  - Loading states
+- **Agency Records** (`src/app/records/agencyrecords/page.tsx`)
+  - Agency-specific document management
+  - Advanced metadata handling
+  - Document preview and download
+  - Access control integration
+
+##### Document Processing
+- **Upload System** (`src/app/upload/page.tsx`)
+  - Multi-file upload support
+  - Drag-and-drop interface
+  - Progress tracking
+  - Metadata extraction
+  - File validation
+
+- **Document Generation** (`src/app/assistant/create/page.tsx`)
+  - Multi-format document creation
+  - Template-based generation
+  - Real-time preview
+  - Context-aware content
+  - Version tracking
+
+#### 4. Search & Analysis
+
+##### Search Systems
+- **Semantic Search** (`src/app/assistant/search/page.tsx`)
+  - Vector similarity search
+  - Multi-tab interface
+  - Content preview
+  - User group scoping
+
+- **Entity Analytics** (`src/app/analytics/page.tsx`)
+  - Timeline visualization
+  - Entity relationship mapping
+  - Real-time search
+  - Data visualization
+
+#### 5. Administration
+
+##### User Management (`src/app/user-management/page.tsx`)
+- **Role-Based Access**
+  - System Admin interface (Role 5)
+  - Agency Admin interface (Role 7)
+  - Restricted access for non-admin users
+
+- **Agency Admin Features**
+  - User listing with status indicators
+  - Add new users to agency group
+  - Edit existing user details
+  - Confirm pending users
+  - Delete users from agency
+  - Real-time user list updates
+  - Phone number management
+
+- **User Operations**
+  - Add new users with temporary passwords
+  - Edit user profiles (name, phone)
+  - Confirm pending users
+  - Delete users with confirmation
+  - View user status (Confirmed/Pending)
+
+- **Security Features**
+  - Group-based access control
+  - Role-based interface rendering
+  - Secure user deletion with confirmation
+  - Protected admin routes
+  - Email-based user verification
+
+##### Actions Management (`src/app/actions/page.tsx`)
+- Task tracking
+- Action assignment
+- Priority management
+- Status updates
+- Collaborative features
 
 ### Shared Components
 
 #### Layout Components
-- **Header** (`src/components/Header.tsx`): Navigation and user context, including admin-specific menu items
-- **Footer** (`src/components/Footer.tsx`): Version information and credits
+- **Header**: Navigation and user context
+- **Footer**: Version and credits
+- **Sidebar**: Context-aware navigation
 
 #### UI Components
-- **ViewPDFButton**: PDF viewing functionality, specifically used in the Agency Records page for viewing uploaded documents
-- **ViewRecordButton**: Record viewing interface, specifically used in the Public Records page for viewing record details
-- Various filter components for different sections
-
-### State Management
-- Uses React Context through SupabaseProvider
-- Implements client-side state management for forms and filters
-- Server-side authentication state management
-
-### Styling
-- Primary UI framework: shadcn/ui
-- Theme customization through tailwind.config.js
-- Dark mode support using shadcn/ui's built-in theming
-- Consistent component styling across the application
-- Responsive design maintained through shadcn/ui's built-in responsive components
-
-## Detailed Page Functions
-
-#### Login Page (`src/app/login/page.tsx`)
-- Redesigned with shadcn/ui components
-- Enhanced error handling and validation
-- Improved loading states
-
-Components:
-- **LoginForm**: New form implementation using shadcn/ui Form components
-- **AuthButtons**: Styled using shadcn/ui Button
-- **ErrorDisplay**: Enhanced error messaging using shadcn/ui Toast
-
-#### Dashboard Page (`src/app/dashboard/page.tsx`) 
-- Protected route requiring authentication
-- Displays user-specific information and actions
-- Shows recent activity and important notifications
-- Quick access to key features
-- Role-based content display
-- Admin-specific features including User Management access
-
-#### Records Page (`src/app/records/page.tsx`)
-- Protected route for viewing public records
-- Implements complex filtering system:
-  - Filter by document type
-  - Filter by agency
-  - Filter by tags
-- Displays both agency-specific and complete records
-- Handles file downloads and previews
-- Error handling for failed record fetches
-- Loading states for data retrieval
-- Pagination for large record sets
-
-#### Agency Records Page (`src/app/agency-records/page.tsx`)
-- Agency-specific document management
-- File upload capabilities with progress tracking
-- Document organization and categorization
-- Preview functionality for uploaded files
-- Metadata management for documents
-- Access control based on user permissions
-
-#### Actions Page (`src/app/actions/page.tsx`)
-- Protected route for managing tasks and actions
-- Real-time action tracking and updates
-- Filtering system for actions:
-  - Filter by status
-  - Filter by assignee
-  - Filter by priority
-- Action creation and editing capabilities
-- Deadline management and notifications
-- Integration with user roles and permissions
-- Collaborative features for team coordination
-
-#### User Management Page (`src/app/user-management/page.tsx`)
-- Protected route with dual-role access (System Admin and Agency Admin)
-- Server-side role verification
-- Features:
-  - Dynamic interface based on user role
-  - Agency-specific user management
-  - User addition workflow:
-    - Basic user information collection
-    - Automatic group assignment
-    - Temporary password generation
-    - Email notification system
-  - User status management:
-    - Confirmation workflow
-    - Status indicators
-    - Real-time updates
-  - List management:
-    - Refresh capabilities
-    - Loading states
-    - Empty state handling
-- Security measures:
-  - Role-based access control
-  - Group-based restrictions
-  - Server-side validation
-  - Error handling
+- Document viewers
+- Filter systems
+- Form components
+- Modal dialogs
+- Loading states
+- Error displays
 
 ## API Structure
 
-### Semantic Search
+### Document Processing
+- PDF processing pipeline
+- OCR integration
+- Text extraction
+- Metadata generation
+- Vector embeddings
 
-#### Embeddings Endpoint (`/api/embeddings`)
-- Generates text embeddings using all-mpnet-base-v2 model
-- Input validation and preprocessing
-- Returns normalized 768-dimensional embeddings
-- Includes debugging information:
-  - Original magnitude
-  - Final magnitude
-  - Embedding dimensions
-  - Sample values
+### Search Services
+- Semantic search endpoints
+- Entity analytics
+- Hybrid search functions
+- Content preview services
 
-#### Hybrid Search Function
-- Implemented as a Supabase stored procedure
-- Parameters:
-  - query_text: Text to search for
-  - query_embedding: Vector representation
-  - match_count: Number of results to return
-  - similarity_threshold: Minimum similarity score
-- Returns:
-  - Document metadata
-  - Similarity scores
-  - File paths
-  - Content preview capabilities
+### User Services
+- Authentication endpoints
+- Profile management
+- Group assignment
+- Access control
 
-### User Management
+## Component Library
 
-#### User Creation
-- Handles new user provisioning through Supabase Auth
-- Creates associated profile records
-- Manages temporary credentials
-- Implements group assignment
+### Core UI (shadcn/ui)
+- Theme system
+- Dark mode support
+- Responsive components
+- Form elements
+- Data display
+- Navigation
+- Modals and overlays
 
-#### User Confirmation
-- Updates user confirmation status
-- Validates agency group membership
-- Ensures proper role assignments
-- Maintains audit trail
+### Custom Components
+- Document viewers
+- Upload interfaces
+- Search interfaces
+- Analytics visualizations
+- Management interfaces
 
-#### Profile Management
-- Handles user profile updates
-- Manages user role assignments
-- Controls agency group associations
-- Implements data validation and sanitization
+### State Management
+- React Context implementation
+- Form state handling
+- Authentication state
+- User preferences
+- Application settings
 

@@ -17,10 +17,10 @@ const Footer = () => {
 
         <div className="flex items-center">
           <a
-            href="/docs/app-documentation.md"
+            href="/docs"
             className="text-sm text-muted-foreground transition-colors hover:text-primary"
           >
-            v0.7.6
+            v0.7.7
           </a>
         </div>
       </div>
