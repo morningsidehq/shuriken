@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build && cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/",
-    "start": "set NODE_OPTIONS=--max-old-space-size=768 && node .next/standalone/server.js",
+    "start": "NODE_OPTIONS='--max-old-space-size=768' node .next/standalone/server.js",
     "lint": "next lint",
     "format": "prettier --write .",
     "format-check": "prettier --check .",

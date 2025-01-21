@@ -51,6 +51,9 @@ const nextConfig = {
   // Server runtime configuration
   serverRuntimeConfig: {
     port: process.env.PORT || 8080,
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    // Add other env vars as needed
   },
 
   // Webpack configuration for path aliases and optimizations
