@@ -21,17 +21,16 @@ const nextConfig = {
   // Output as standalone build for production deployment
   output: 'standalone',
 
-  // Enable build caching for faster rebuilds
+  // Server external packages configuration
+  serverExternalPackages: [
+    'styled-jsx',
+    '@babel/core',
+    'onnxruntime-node',
+    '@xenova/transformers',
+  ],
+
   experimental: {
-    serverComponentsExternalPackages: [
-      'styled-jsx',
-      '@babel/core',
-      'onnxruntime-node',
-      '@xenova/transformers',
-    ],
-    turbotrace: {
-      enabled: true,
-    },
+    turbo: true,
   },
 
   // Image optimization configuration
@@ -77,7 +76,6 @@ const nextConfig = {
     // Prevent server-side webpack from attempting to parse binary files
     if (isServer) {
       config.externals.push({
-        'onnxruntime-node': 'commonjs onnxruntime-node',
         'styled-jsx': 'commonjs styled-jsx',
         '@babel/core': 'commonjs @babel/core',
       })

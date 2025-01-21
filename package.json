@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && xcopy /E /I /Y public .next\\standalone\\ && xcopy /E /I /Y .next\\static .next\\standalone\\.next\\static\\",
     "start": "set NODE_OPTIONS=--max-old-space-size=768 && node .next/standalone/server.js",
     "lint": "next lint",
     "format": "prettier --write .",
